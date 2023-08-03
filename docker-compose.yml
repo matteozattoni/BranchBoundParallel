@@ -1,0 +1,12 @@
+version: '3'
+services:
+  debianmpi:
+    container_name: debian_openmpi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: debian/openmpi
+    volumes:
+      - ./code:/code
+    working_dir: /code
+    tty: true
