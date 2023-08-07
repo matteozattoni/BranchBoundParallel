@@ -1,5 +1,5 @@
 #include "mpi.h"
-#include "seq/knapsacklib.h"
+#include "knapsack/knapsacklib.h"
 #include <stdio.h>
 #include <vector>
 #include <bits/stdc++.h>
@@ -19,10 +19,10 @@ int main() {
 
     if (rank == 0) {
         printf("comm world size is %d\n", size);
-        printf("sizeof(struct knapsackelem) = %zu\n", sizeof(struct knapsackelem));
-        printf("alignof(struct knapsackelem) = %zu\n", alignof(struct knapsackelem));
-        printf("sizeof(struct elemSoloution) = %zu\n", sizeof(struct elemSoloution));
-        printf("alignof(struct elemSoloution) = %zu\n", alignof(struct elemSoloution));
+        printf("sizeof(struct knapsackelem) = %zu\n", sizeof(struct KnapsackObject));
+        printf("alignof(struct knapsackelem) = %zu\n", alignof(struct KnapsackObject));
+        printf("sizeof(struct elemSoloution) = %zu\n", sizeof(struct KnapsackElementSolution));
+        printf("alignof(struct elemSoloution) = %zu\n", alignof(struct KnapsackElementSolution));
         printf("vector size: %d\n", myvector.size());
         cout << "capacity of vector 2 = " << myvector.capacity() << endl;
         cout << "max_size of vector 2 = " << myvector.max_size() << endl;
