@@ -6,14 +6,17 @@
 class KnapsackMemoryManager
 {
 private:
-    KnapsackStaticMemoryPool<KnapsackResultSolution> solutionMemoryPool;
-    KnapsackStaticMemoryPool<KnapsackResultBranch> branchMemoryPool;
-    KnapsackStaticMemoryPool<KnapsackTask> taskMemoryPool;
+    KnapsackFixedMemoryPool<KnapsackResultSolution> solutionMemoryPool;
+    KnapsackFixedMemoryPool<KnapsackResultBranch> branchMemoryPool;
+    KnapsackFixedMemoryPool<KnapsackTask> taskMemoryPool;
     KnapsackMemoryManager(/* args */);
     ~KnapsackMemoryManager();
     /* data */
 public:
     static KnapsackMemoryManager* singleton;
+    int getNumberResultSolutionMalloc();
+    int getNumberResultBranchMalloc();
+    int getNumberTaskMalloc();
     KnapsackResultSolution* allocateResultSolution();
     KnapsackResultBranch* allocateResultBranch();
     KnapsackTask* allocateTask();

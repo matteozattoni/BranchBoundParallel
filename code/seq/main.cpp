@@ -12,15 +12,14 @@ using namespace std;
 
 int main()
 {
-    //KnapsackMemoryManager* manager = KnapsackMemoryManager::singleton;
+    KnapsackMemoryManager* manager = KnapsackMemoryManager::singleton;
     int numberOfState = 0;
     int numberOfBranch = 0;
     int finalSolution = -1;
     std::list<KnapsackTask *>* list = new std::list<KnapsackTask*>();
     Problem *problem = readFile(SMALL_DATASET);
-    //KnapsackTask *initTask = manager->allocateTask();
-    KnapsackTask *initTask = new KnapsackTask(nullptr, 0);
-    //initTask->setBuffer(nullptr, 0);
+    KnapsackTask *initTask = manager->allocateTask();
+    new(initTask) KnapsackTask(nullptr, 0);
     sortKnapsack(problem);
     Knapsack knapsackProblem(problem->problem, problem->nElements, problem->knapsackWeigth);
     
@@ -28,7 +27,6 @@ int main()
     while (knapsackProblem.hasCurrentTask())
     {
         numberOfState++;
-        //cout << "list size: " << list.size() << endl;
         BranchBoundResult *b = knapsackProblem.computeTaskIteration();
         switch (b->getResultType())
         {
@@ -37,7 +35,6 @@ int main()
             
             KnapsackResultSolution *solution = dynamic_cast<KnapsackResultSolution *>(b);
             int localSolution = solution->getSolutionResult();
-            //cout << "solution: " << localSolution << endl;
             knapsackProblem.setBound(localSolution);
             finalSolution = max(finalSolution, localSolution);
             if (!list->empty()) {
@@ -45,8 +42,7 @@ int main()
                 knapsackProblem.setCurrentTask(task);
                 list->pop_front();
             }
-            delete solution;
-            //manager->deallocateResultSolution(solution);
+            manager->deallocateResultSolution(solution);
             break;
         }
         case Branch:
@@ -57,14 +53,15 @@ int main()
                 KnapsackTask *s = (KnapsackTask *)branch->getArrayBranch();
                 list->push_front(s);
             }
-            delete branch;
-            //manager->deallocateResultBranch(branch);
+            manager->deallocateResultBranch(branch);
             break;
         }
         }
     }
-    //cout << "Number of malloc for branch " << knapsackProblem.branchMemoryPool.numberOfMalloc << endl;
-    //cout << "Number of malloc for solution " << knapsackProblem.solutionMemoryPool.numberOfMalloc << endl;
+    
+    cout << "Number of malloc for branch " << manager->getNumberResultBranchMalloc() << endl;
+    cout << "Number of malloc for solution " << manager->getNumberResultSolutionMalloc() << endl;
+    cout << "Number of malloc for task " << manager->getNumberTaskMalloc() << endl;
     cout << "Total number of states " << numberOfState << endl;
     cout << "Total number of branch " << numberOfBranch << endl;
     cout << "Final solution is " << finalSolution << endl;

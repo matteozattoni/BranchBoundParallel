@@ -29,3 +29,15 @@ void KnapsackMemoryManager::deallocateResultBranch(KnapsackResultBranch* ptr) {
 void KnapsackMemoryManager::deallocateTask(KnapsackTask* ptr) {
     this->taskMemoryPool.deallocate(ptr);
 }
+
+int KnapsackMemoryManager::getNumberResultSolutionMalloc() {
+    return this->solutionMemoryPool.numberOfMalloc;
+}
+
+int KnapsackMemoryManager::getNumberResultBranchMalloc() {
+    return this->branchMemoryPool.numberOfMalloc;
+}
+
+int KnapsackMemoryManager::getNumberTaskMalloc() {
+    return this->taskMemoryPool.numberOfMalloc;
+}

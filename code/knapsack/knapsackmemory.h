@@ -7,7 +7,7 @@
 #include "knapsacktask.h"
 
 template<typename T>
-class KnapsackStaticMemoryPool
+class KnapsackFixedMemoryPool
 {
 private:
     std::list<T*> allocateList;
@@ -18,13 +18,13 @@ public:
 
     void deallocate(T* ptr);
 
-    KnapsackStaticMemoryPool<T>(/* args */);
-    ~KnapsackStaticMemoryPool<T>();
+    KnapsackFixedMemoryPool<T>(/* args */);
+    ~KnapsackFixedMemoryPool<T>();
 };
 
 
-template class KnapsackStaticMemoryPool<KnapsackResultBranch>;
-template class KnapsackStaticMemoryPool<KnapsackResultSolution>;
-template class KnapsackStaticMemoryPool<KnapsackTask>;
+template class KnapsackFixedMemoryPool<KnapsackResultBranch>;
+template class KnapsackFixedMemoryPool<KnapsackResultSolution>;
+template class KnapsackFixedMemoryPool<KnapsackTask>;
 
 #endif

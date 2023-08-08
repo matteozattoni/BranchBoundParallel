@@ -66,26 +66,26 @@ BranchBoundResult *Knapsack::computeTaskIteration()
     if (residualCapacity == 0)
     {
         clearSolution();
-        //KnapsackResultSolution* my = manager->allocateResultSolution();
-        KnapsackResultSolution* my = new KnapsackResultSolution(upperbound);
-        return my;
+        KnapsackResultSolution* solution = manager->allocateResultSolution();
+        new(solution) KnapsackResultSolution(upperbound);
+        return solution;
     }
 
     if (foundCritcalObject == false)
     { // no object can be inserted: we close this bound with solution profit
         int profit = currentSolution->getSolutionProfit();
         clearSolution();
-        //KnapsackResultSolution* my = manager->allocateResultSolution();
-        KnapsackResultSolution* my = new KnapsackResultSolution(profit);
-        return my;
+        KnapsackResultSolution* solution = manager->allocateResultSolution();
+        new(solution) KnapsackResultSolution(profit);
+        return solution;
     }
 
     if (upperbound <= bound)
     {
         clearSolution();
-        //KnapsackResultSolution* my = manager->allocateResultSolution();
-        KnapsackResultSolution* my = new KnapsackResultSolution(upperbound);
-        return my;
+        KnapsackResultSolution* solution = manager->allocateResultSolution();
+        new(solution) KnapsackResultSolution(upperbound);
+        return solution;
     }
 
     if (residualCapacity > 0)
@@ -96,22 +96,21 @@ BranchBoundResult *Knapsack::computeTaskIteration()
         if ((solutionWeigth + criticalObject->weight) > knapsackCapacity)
         {
             currentSolution->addObjectToSolution(i, false, criticalObject->profit, criticalObject->weight);
-            //KnapsackResultBranch* branch = manager->allocateResultBranch();
-            KnapsackResultBranch* branch = new KnapsackResultBranch(nullptr, 0);
+            KnapsackResultBranch* branch = manager->allocateResultBranch();
+            new(branch) KnapsackResultBranch(nullptr, 0);
             return branch;
         }
         else
         { // actual branch
             KnapsackElementSolution *currentSolutionBuffer = currentSolution->getSolution();
-            //KnapsackTask* newTask = manager->allocateTask();
-            KnapsackTask* newTask = new KnapsackTask(currentSolution, idCriticalObject, false);
-            //newTask->copyFromSolution(currentSolution, idCriticalObject, false);
+            KnapsackTask* newTask = manager->allocateTask();
+            new(newTask) KnapsackTask(currentSolution, idCriticalObject, false);
+
             currentSolution->addObjectToSolution(idCriticalObject, true, criticalObject->profit, criticalObject->weight);
         
-            //KnapsackResultBranch* branch = manager->allocateResultBranch();
-            //KnapsackResultBranch* branch = (KnapsackResultBranch*) malloc(sizeof(KnapsackResultBranch));
+            KnapsackResultBranch* branch = manager->allocateResultBranch();
 
-            KnapsackResultBranch* branch = new KnapsackResultBranch(newTask, 1);
+            new(branch) KnapsackResultBranch(newTask, 1);
             return branch;
         }
     }
@@ -124,6 +123,7 @@ Knapsack::Knapsack(KnapsackObject *problemElements, int problemDimension, int kn
     this->problemDimension = problemDimension;
     this->knapsackCapacity = knapsackCapacity;
     this->currentSolution = new KnapsackSolution(problemElements, problemDimension);
+    this->manager = KnapsackMemoryManager::singleton;
 }
 
 Knapsack::~Knapsack()
