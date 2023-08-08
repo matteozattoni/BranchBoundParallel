@@ -24,6 +24,11 @@ KnapsackResultBranch::~KnapsackResultBranch()
 {
 }
 
+void KnapsackResultBranch::setTasks(KnapsackTask* tasks, int num) {
+    this->tasks = tasks;
+    this->numberOfTask = num;
+}
+
 int KnapsackResultBranch::getNumberBranch() {
     return numberOfTask;
 }

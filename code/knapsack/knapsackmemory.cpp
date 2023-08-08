@@ -1,17 +1,17 @@
 #include "knapsackmemory.h"
 
 template <typename T>
-KnapsackResultMemoryPool<T>::KnapsackResultMemoryPool(/* args */)
+KnapsackStaticMemoryPool<T>::KnapsackStaticMemoryPool(/* args */)
 {
 }
 
 template <typename T>
-KnapsackResultMemoryPool<T>::~KnapsackResultMemoryPool()
+KnapsackStaticMemoryPool<T>::~KnapsackStaticMemoryPool()
 {
 }
 
 template <typename T>
-T *KnapsackResultMemoryPool<T>::allocate()
+T *KnapsackStaticMemoryPool<T>::allocate()
 {
     if (allocateList.empty())
     {
@@ -27,7 +27,7 @@ T *KnapsackResultMemoryPool<T>::allocate()
 }
 
 template <typename T>
-void KnapsackResultMemoryPool<T>::deallocate(T *ptr)
+void KnapsackStaticMemoryPool<T>::deallocate(T *ptr)
 {
     allocateList.push_front(ptr);
 }

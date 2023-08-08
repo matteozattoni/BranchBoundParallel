@@ -43,20 +43,18 @@ KnapsackElementSolution *KnapsackSolution::getSolution()
     return solutions;
 }
 
-void KnapsackSolution::solutionFromTask(KnapsackTask *task)
+void KnapsackSolution::copyElements(KnapsackElementSolution *elementsToCopy, int size)
 {
-    if (task->size == 0)
+    solutionSize = size;
+    if (solutionSize == 0)
     {
-        solutionSize = 0;
         profit = 0;
         weigth = 0;
         return;
     }
 
-    KnapsackElementSolution *solutionToCopy = task->objects;
-
-    solutionSize = task->size;
-    memcpy(solutions, solutionToCopy, sizeof(KnapsackElementSolution)*solutionSize);
+    
+    memcpy(solutions, elementsToCopy, sizeof(KnapsackElementSolution)*solutionSize);
     for (size_t i = 0; i < solutionSize; i++)
     {
         if (solutions[i].in_knapsack)

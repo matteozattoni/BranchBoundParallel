@@ -4,7 +4,6 @@
 #include <set>
 #include <utility>
 #include "knapsacklib.h"
-#include "knapsacktask.h"
 
 class KnapsackSolution
 {
@@ -20,7 +19,7 @@ public:
     void clear();
     KnapsackSolution(KnapsackObject* problemElements, int problemSize);
     ~KnapsackSolution();
-    void solutionFromTask(KnapsackTask* task);
+    void copyElements(KnapsackElementSolution* elements, int size);
     void addObjectToSolution(int id, bool in_knapsack, int profit, int weigth);
     bool hasObjectId(int id);
     int getSolutionWeigth();

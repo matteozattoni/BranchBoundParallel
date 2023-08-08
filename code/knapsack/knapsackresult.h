@@ -28,6 +28,7 @@ private:
 public:
     int getNumberBranch() override;
     void* getArrayBranch() override;
+    void setTasks(KnapsackTask* tasks, int num);
     KnapsackResultBranch(KnapsackTask* tasks, int num);
     ~KnapsackResultBranch();
 };

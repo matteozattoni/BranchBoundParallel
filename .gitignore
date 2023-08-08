@@ -33,3 +33,10 @@
 
 # MACOS
 .DS_STORE
+
+# VSCODE
+.vscode
+
+# ZIP FILE
+
+*.tar

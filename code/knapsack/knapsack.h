@@ -2,11 +2,11 @@
 #define KNAPSACKCLASS
 
 #include "knapsacklib.h"
-#include "knapsackmemory.h"
 #include "knapsacksolution.h"
 #include "knapsacktask.h"
 #include "../branchbound/result.h"
 #include "knapsackresult.h"
+#include "knapsackmemorymanager.h"
 
 
 using namespace std;
@@ -21,9 +21,9 @@ private:
     KnapsackObject* problemElements;
     KnapsackSolution* currentSolution;
     void clearSolution();
+    KnapsackMemoryManager* manager;
 public:
-    KnapsackResultMemoryPool<KnapsackResultSolution> solutionMemoryPool;
-    KnapsackResultMemoryPool<KnapsackResultBranch> branchMemoryPool;
+    
     Knapsack(KnapsackObject* problemElements, int problemDimension, int knapsackCapacity);
     ~Knapsack();
 

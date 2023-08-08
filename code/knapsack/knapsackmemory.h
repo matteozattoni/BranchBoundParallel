@@ -4,9 +4,10 @@
 #include <list>
 #include <stdlib.h>
 #include "knapsackresult.h"
+#include "knapsacktask.h"
 
 template<typename T>
-class KnapsackResultMemoryPool
+class KnapsackStaticMemoryPool
 {
 private:
     std::list<T*> allocateList;
@@ -17,12 +18,13 @@ public:
 
     void deallocate(T* ptr);
 
-    KnapsackResultMemoryPool<T>(/* args */);
-    ~KnapsackResultMemoryPool<T>();
+    KnapsackStaticMemoryPool<T>(/* args */);
+    ~KnapsackStaticMemoryPool<T>();
 };
 
 
-template class KnapsackResultMemoryPool<KnapsackResultBranch>;
-template class KnapsackResultMemoryPool<KnapsackResultSolution>;
+template class KnapsackStaticMemoryPool<KnapsackResultBranch>;
+template class KnapsackStaticMemoryPool<KnapsackResultSolution>;
+template class KnapsackStaticMemoryPool<KnapsackTask>;
 
 #endif
