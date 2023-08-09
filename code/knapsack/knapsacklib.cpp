@@ -23,10 +23,8 @@ Problem* readFile(std::string fileName)
     problem->nElements = atoi(val);
     problem->problem = (KnapsackObject *) calloc(problem->nElements, sizeof(struct KnapsackObject));
 
-    cout << problem->nElements << endl;
     val = strtok(NULL, delimeter);
     problem->knapsackWeigth = atoi(val);
-    cout << problem->knapsackWeigth << endl;
 
     // get istance
     for (size_t i = 0; i < problem->nElements; i++)
@@ -46,9 +44,6 @@ Problem* readFile(std::string fileName)
         }
     }
 
-    cout << "first " << problem->problem[0].profit << endl;                   // 94
-    cout << "last " << problem->problem[problem->nElements - 1].profit << endl; // 455
-
     file.close();
     return problem;
 }
@@ -56,9 +51,6 @@ Problem* readFile(std::string fileName)
 void sortKnapsack(Problem* problem)
 {
     sort(problem->problem, problem->problem + problem->nElements, compareElements);
-    cout << "first " << problem->problem[0].profit << endl; // 94
-    cout << "last " << problem->problem[problem->nElements - 1].profit << endl;
-    cout << "size of class is: " << sizeof(problem->problem[0]) * problem->nElements << endl;
 }
 
 bool compareElements(const KnapsackObject e1, const KnapsackObject e2) {

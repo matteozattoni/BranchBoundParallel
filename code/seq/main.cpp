@@ -22,7 +22,7 @@ int main()
     new(initTask) KnapsackTask(nullptr, 0);
     sortKnapsack(problem);
     Knapsack knapsackProblem(problem->problem, problem->nElements, problem->knapsackWeigth);
-    
+
     knapsackProblem.setCurrentTask(initTask);
     while (knapsackProblem.hasCurrentTask())
     {
@@ -40,6 +40,9 @@ int main()
             if (!list->empty()) {
                 KnapsackTask* task = list->front();
                 knapsackProblem.setCurrentTask(task);
+                if (task != nullptr && task->objects != nullptr)
+                    manager->deallocateArray(task->objects);
+                manager->deallocateTask(task);
                 list->pop_front();
             }
             manager->deallocateResultSolution(solution);
@@ -59,6 +62,7 @@ int main()
         }
     }
     
+    cout << "Number of calloc for task " << manager->getNumberArrayCalloc() << endl;
     cout << "Number of malloc for branch " << manager->getNumberResultBranchMalloc() << endl;
     cout << "Number of malloc for solution " << manager->getNumberResultSolutionMalloc() << endl;
     cout << "Number of malloc for task " << manager->getNumberTaskMalloc() << endl;

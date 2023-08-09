@@ -17,17 +17,14 @@ void KnapsackTask::copyFromSolution(KnapsackSolution *solution, int newElemId, b
     if (size > 0)
     {
         KnapsackElementSolution *solutionBuffer = solution->getSolution();
-        KnapsackElementSolution *buffToCopy = (KnapsackElementSolution *)calloc(size + 1, sizeof(KnapsackElementSolution));
-        memcpy(buffToCopy, solutionBuffer, sizeof(KnapsackElementSolution) * size);
-        cout << newElemId << " " << inKnapsack << endl;
-        buffToCopy[size].id = newElemId;
-        buffToCopy[size].in_knapsack = inKnapsack;
-        this->objects = buffToCopy;
-        this->size = size+1;
+        memcpy(this->objects, solutionBuffer, sizeof(KnapsackElementSolution) * size);
+        this->objects[size].id = newElemId;
+        this->objects[size].in_knapsack = inKnapsack;
     }
     else
     {
-        this->objects = (KnapsackElementSolution *)malloc(sizeof(KnapsackElementSolution));
+        this->objects[0].id = newElemId;
+        this->objects[0].in_knapsack = inKnapsack;
         this->size = 1;
     }
 }

@@ -102,9 +102,11 @@ BranchBoundResult *Knapsack::computeTaskIteration()
         }
         else
         { // actual branch
-            KnapsackElementSolution *currentSolutionBuffer = currentSolution->getSolution();
+            size_t size = currentSolution->getSolutionSize();
             KnapsackTask* newTask = manager->allocateTask();
-            new(newTask) KnapsackTask(currentSolution, idCriticalObject, false);
+            KnapsackElementSolution* buff = manager->allocateArray(size+1);
+            new(newTask) KnapsackTask(buff, size+1);
+            newTask->copyFromSolution(currentSolution, idCriticalObject, false);
 
             currentSolution->addObjectToSolution(idCriticalObject, true, criticalObject->profit, criticalObject->weight);
         

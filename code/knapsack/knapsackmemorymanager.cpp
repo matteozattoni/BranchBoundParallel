@@ -27,17 +27,34 @@ void KnapsackMemoryManager::deallocateResultBranch(KnapsackResultBranch* ptr) {
     this->branchMemoryPool.deallocate(ptr);
 }
 void KnapsackMemoryManager::deallocateTask(KnapsackTask* ptr) {
-    this->taskMemoryPool.deallocate(ptr);
+    if (ptr != nullptr)
+        this->taskMemoryPool.deallocate(ptr);
 }
 
 int KnapsackMemoryManager::getNumberResultSolutionMalloc() {
-    return this->solutionMemoryPool.numberOfMalloc;
+    return this->solutionMemoryPool.getNumberAllocation();
 }
 
 int KnapsackMemoryManager::getNumberResultBranchMalloc() {
-    return this->branchMemoryPool.numberOfMalloc;
+    return this->branchMemoryPool.getNumberAllocation();
 }
 
 int KnapsackMemoryManager::getNumberTaskMalloc() {
-    return this->taskMemoryPool.numberOfMalloc;
+    return this->taskMemoryPool.getNumberAllocation();
+}
+
+
+KnapsackElementSolution* KnapsackMemoryManager::allocateArray(size_t size) {
+    if (size <= 0)
+        return nullptr;
+   return this->arrayMemoryPool.allocate(size);
+}
+
+void KnapsackMemoryManager::deallocateArray(KnapsackElementSolution* ptr) {
+    if (ptr != nullptr)
+        this->arrayMemoryPool.deallocate(ptr);
+}
+
+int KnapsackMemoryManager::getNumberArrayCalloc() {
+    return this->arrayMemoryPool.getNumberAllocation();
 }
