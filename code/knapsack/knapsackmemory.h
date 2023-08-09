@@ -14,10 +14,9 @@ class KnapsackFixedMemoryPool
 private:
     std::list<T*> allocateList;
     int numberOfMalloc = 0;
-    /* data */
 public:
     T* allocate();
-    int getNumberAllocation();
+    int getNumberOfMalloc();
     void deallocate(T* ptr);
     KnapsackFixedMemoryPool(/* args */);
     ~KnapsackFixedMemoryPool();
@@ -44,6 +43,7 @@ public:
     T* allocate(size_t size);
     void deallocate(T* ptr);
     int getNumberAllocation();
+    size_t getTotalSizeAllocated();
     KnapsackArrayMemoryPool(/* args */);
     ~KnapsackArrayMemoryPool();
 };

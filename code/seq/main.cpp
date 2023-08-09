@@ -62,11 +62,10 @@ int main()
         }
     }
     
-    cout << "Number of calloc for task " << manager->getNumberArrayCalloc() << endl;
-    cout << "Number of malloc for branch " << manager->getNumberResultBranchMalloc() << endl;
-    cout << "Number of malloc for solution " << manager->getNumberResultSolutionMalloc() << endl;
-    cout << "Number of malloc for task " << manager->getNumberTaskMalloc() << endl;
+    KnapsackMemoryRecap* memoryRecap = manager->getMemoryInfo();
+    cout << *memoryRecap << endl;
     cout << "Total number of states " << numberOfState << endl;
     cout << "Total number of branch " << numberOfBranch << endl;
     cout << "Final solution is " << finalSolution << endl;
+    delete memoryRecap;
 }

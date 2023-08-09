@@ -13,7 +13,7 @@ KnapsackFixedMemoryPool<T>::~KnapsackFixedMemoryPool()
 }
 
 template <class T>
-int KnapsackFixedMemoryPool<T>::getNumberAllocation()
+int KnapsackFixedMemoryPool<T>::getNumberOfMalloc()
 {
     return numberOfMalloc;
 }
@@ -87,10 +87,20 @@ T* KnapsackArrayMemoryPool<T>::allocate(size_t size) {
 
 template<class T>
 void KnapsackArrayMemoryPool<T>::deallocate(T* ptr) {
-    typename std::set<_ChunkArray*>::iterator it;
     size_t size = pointerSize[ptr];
     _ChunkArray* newChunk = poolChunk.allocate();
     newChunk->pointer = ptr;
     newChunk->sizeMemoryHeap = size;
     freeArrays.insert(newChunk);
+}
+
+template<class T>
+size_t KnapsackArrayMemoryPool<T>::getTotalSizeAllocated() {
+    size_t totalSize = 0;
+
+    for(auto const& pair: pointerSize) {
+        totalSize+=pair.second;
+    }
+    return totalSize;
+
 }
