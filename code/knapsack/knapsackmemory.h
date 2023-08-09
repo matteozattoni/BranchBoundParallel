@@ -25,7 +25,10 @@ public:
 template<class T>
 class KnapsackArrayMemoryPool
 {
-private:
+protected:
+    const bool useDelta;
+    double pivot;
+    int fromsize;
     int numberOfCalloc = 0;
     std::map<T*, size_t> pointerSize;
     struct _ChunkArray
@@ -35,7 +38,8 @@ private:
     };
     struct cmp {
 	bool operator()(const _ChunkArray* x, const _ChunkArray* y) const { return x->sizeMemoryHeap < y->sizeMemoryHeap; }
-};
+    };
+    bool isSizeDisposable(size_t a, size_t b);
     KnapsackFixedMemoryPool<_ChunkArray> poolChunk;
     static bool compareChunk(const _ChunkArray* c1, const _ChunkArray* c2) { return c1->sizeMemoryHeap < c2->sizeMemoryHeap; };
     std::set<_ChunkArray*, cmp> freeArrays;
@@ -44,9 +48,11 @@ public:
     void deallocate(T* ptr);
     int getNumberAllocation();
     size_t getTotalSizeAllocated();
-    KnapsackArrayMemoryPool(/* args */);
+    KnapsackArrayMemoryPool();
+    KnapsackArrayMemoryPool(double,int);
     ~KnapsackArrayMemoryPool();
 };
+
 
 template class KnapsackFixedMemoryPool<KnapsackResultBranch>;
 template class KnapsackFixedMemoryPool<KnapsackResultSolution>;

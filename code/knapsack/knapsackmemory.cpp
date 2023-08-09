@@ -1,6 +1,6 @@
 #include "knapsackmemory.h"
 
-// FIXs
+// Fixed
 
 template <class T>
 KnapsackFixedMemoryPool<T>::KnapsackFixedMemoryPool(/* args */)
@@ -44,8 +44,13 @@ void KnapsackFixedMemoryPool<T>::deallocate(T *ptr)
 // Array
 
 template<class T>
-KnapsackArrayMemoryPool<T>::KnapsackArrayMemoryPool() {
+KnapsackArrayMemoryPool<T>::KnapsackArrayMemoryPool() : useDelta(false) {
+}
 
+template<class T>
+KnapsackArrayMemoryPool<T>::KnapsackArrayMemoryPool(double pivot, int fromsize) : useDelta(true) {
+    this->pivot = pivot;
+    this->fromsize = fromsize;
 }
 
 template<class T>
@@ -65,8 +70,8 @@ T* KnapsackArrayMemoryPool<T>::allocate(size_t size) {
     while (it != freeArrays.end())
     {
         _ChunkArray* c = *it;
-        if (c->sizeMemoryHeap >= size ) {
-            // check delta
+        size_t sizeChunk = c->sizeMemoryHeap;
+        if (sizeChunk >= size && (!useDelta || isSizeDisposable(sizeChunk, size))) {
             break;
         }
         it++;
@@ -92,6 +97,21 @@ void KnapsackArrayMemoryPool<T>::deallocate(T* ptr) {
     newChunk->pointer = ptr;
     newChunk->sizeMemoryHeap = size;
     freeArrays.insert(newChunk);
+}
+
+template<class T>
+bool KnapsackArrayMemoryPool<T>::isSizeDisposable(size_t a, size_t b) {
+    double pivot = this->pivot; //0. percet which can be wasted 
+    if (a < b)
+        return false;
+    if (a < this->fromsize)
+        return true;
+    double A = a;
+    double B = b;
+    double relativeDelta = A - (A/B); // wasted size
+    if (relativeDelta > pivot)
+        return false;
+    return true;
 }
 
 template<class T>

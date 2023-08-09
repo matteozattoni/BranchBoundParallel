@@ -42,10 +42,10 @@ private:
     KnapsackFixedMemoryPool<KnapsackResultSolution> solutionMemoryPool;
     KnapsackFixedMemoryPool<KnapsackResultBranch> branchMemoryPool;
     KnapsackFixedMemoryPool<KnapsackTask> taskMemoryPool;
-    KnapsackArrayMemoryPool<KnapsackElementSolution> arrayMemoryPool;
+    //KnapsackArrayMemoryPool<KnapsackElementSolution> arrayMemoryPool = KnapsackArrayMemoryPool<KnapsackElementSolution>(0.2,50);
+    KnapsackArrayMemoryPool<KnapsackElementSolution> arrayMemoryPool = KnapsackArrayMemoryPool<KnapsackElementSolution>();
     KnapsackMemoryManager(/* args */);
     ~KnapsackMemoryManager();
-    /* data */
 public:
     static KnapsackMemoryManager* singleton;
     KnapsackMemoryRecap* getMemoryInfo();
