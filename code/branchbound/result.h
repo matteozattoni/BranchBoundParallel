@@ -1,7 +1,9 @@
 #ifndef BRANCHBOUNDRESULT
 #define BRANCHBOUNDRESULT
 
-enum eBranchBoundResultType { Solution, Branch };
+#include "branchboundbranch.h"
+
+enum eBranchBoundResultType { Solution, ResultBranch, Closed };
 
 class BranchBoundResult
 {
@@ -10,9 +12,9 @@ private:
 protected:
     eBranchBoundResultType resultType;
 public:
-    BranchBoundResult(/* args */);
-    ~BranchBoundResult();
-    virtual eBranchBoundResultType getResultType() = 0;
+    BranchBoundResult() {}
+    ~BranchBoundResult() {}
+    virtual eBranchBoundResultType getResultType()=0;
 };
 
 class BranchBoundResultSolution: public virtual BranchBoundResult
@@ -20,23 +22,36 @@ class BranchBoundResultSolution: public virtual BranchBoundResult
 private:
     /* data */
 public:
-    eBranchBoundResultType getResultType() {return Solution;};
+    eBranchBoundResultType getResultType() override {return Solution;};
     virtual int getSolutionResult() = 0;
-    BranchBoundResultSolution();
-    ~BranchBoundResultSolution();
+    BranchBoundResultSolution() {}
+    virtual ~BranchBoundResultSolution() {}
 };
 
 class BranchBoundResultBranch: public virtual BranchBoundResult
 {
 private:
+    const Branch* branches;
+    const int numberOfBranch;
     /* data */
 public:
-    BranchBoundResultBranch();
-    ~BranchBoundResultBranch();
-    eBranchBoundResultType getResultType() {return Branch;};
-    virtual int getNumberBranch() = 0;
-    virtual void* getArrayBranch() = 0;
+    BranchBoundResultBranch(Branch* b,int n): branches(b), numberOfBranch(n) {}
+    virtual ~BranchBoundResultBranch() {};
+    eBranchBoundResultType getResultType() override {return ResultBranch;};
+    int getNumberBranch() {return numberOfBranch;}
+    const Branch* getArrayBranch() { return branches;}
 };
+
+class BranchBoundResultClosed: public virtual BranchBoundResult
+{
+private:
+    /* data */
+public:
+    BranchBoundResultClosed() {};
+    virtual ~BranchBoundResultClosed() {};
+    eBranchBoundResultType getResultType() override {return Closed;};
+};
+
 
 
 #endif

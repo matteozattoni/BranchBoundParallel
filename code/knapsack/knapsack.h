@@ -1,39 +1,42 @@
 #ifndef KNAPSACKCLASS
 #define KNAPSACKCLASS
 
-#include "knapsacklib.h"
-#include "knapsacksolution.h"
-#include "knapsacktask.h"
+#include "../branchbound/branchboundalgorithm.h"
+#include "../branchbound/branchboundproblem.h"
 #include "../branchbound/result.h"
+#include "../branchbound/branchboundexception.h"
+#include "knapsacksolution.h"
+#include "knapsackproblem.h"
 #include "knapsackresult.h"
 #include "knapsackmemorymanager.h"
 
 
 using namespace std;
 
-class Knapsack {
+class Knapsack: public BranchBoundAlgorithm {
 
 private:
     int bound = -1;
-    int problemDimension;
-    int knapsackCapacity;
     bool isComputingSolution = false;
-    KnapsackObject* problemElements;
     KnapsackSolution* currentSolution;
     void clearSolution();
     KnapsackMemoryManager* manager;
+
+    void setKnapsackProblem(KnapsackProblem*);
+    KnapsackProblem* getKnapsackProblem();
 public:
-    
-    Knapsack(KnapsackObject* problemElements, int problemDimension, int knapsackCapacity);
+    Knapsack(/* manager?*/);
     ~Knapsack();
 
-    void setBound(int bound);
+    bool isBetterBound(int bound) override;
+    void setBound(int bound) override;
+    void setProblem(BranchBoundProblem*) override;
+    void setProblemWithRootBranch(BranchBoundProblem*) override;
+    void setBranch(const Branch*) override;
+    BranchBoundResult* computeTaskIteration() override;
+    bool hasCurrentBranch() override;
 
-    void setCurrentTask(KnapsackTask* task);
-    bool hasCurrentTask();
     void printCurrentSolution();
-
-    BranchBoundResult* computeTaskIteration();
 
 
 };

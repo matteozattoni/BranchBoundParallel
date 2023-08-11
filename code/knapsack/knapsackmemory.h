@@ -2,11 +2,11 @@
 #define KNAPSACKMEMORY
 
 #include <list>
+#include <set>
 #include <map>
 #include <stdlib.h>
 #include "knapsackresult.h"
-#include "knapsacktask.h"
-#include "knapsacklib.h"
+#include "knapsackbranch.h"
 
 template<class T>
 class KnapsackFixedMemoryPool
@@ -56,9 +56,11 @@ public:
 
 template class KnapsackFixedMemoryPool<KnapsackResultBranch>;
 template class KnapsackFixedMemoryPool<KnapsackResultSolution>;
-template class KnapsackFixedMemoryPool<KnapsackTask>;
+template class KnapsackFixedMemoryPool<KnapsackResultClose>;
+template class KnapsackFixedMemoryPool<KnapsackBranch>;
 
-template class KnapsackArrayMemoryPool<KnapsackElementSolution>;
+template class KnapsackArrayMemoryPool<KnapsackBranch>;
+template class KnapsackArrayMemoryPool<KnapsackBranchElement>;
 
 
 #endif

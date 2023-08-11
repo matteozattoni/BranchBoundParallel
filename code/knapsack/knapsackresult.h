@@ -1,15 +1,13 @@
-#ifndef KNAPSACKRESULT
-#define KNAPSACKRESULT
+#ifndef KNAPSACKRESULT_H
+#define KNAPSACKRESULT_H
 
 
 
 #include "../branchbound/result.h"
-#include "knapsacksolution.h"
-#include "knapsacktask.h"
 
-class KnapsackResultSolution: public virtual BranchBoundResultSolution {
+class KnapsackResultSolution: public BranchBoundResultSolution {
 private:
-    int profitSolution;
+    const int profitSolution;
     /* data */
 public:
     int getSolutionResult() override;
@@ -19,18 +17,24 @@ public:
 
 // branch
 
-class KnapsackResultBranch: public virtual BranchBoundResultBranch
+class KnapsackResultBranch: public BranchBoundResultBranch
 {
 private:
-    int numberOfTask;
-    KnapsackTask* tasks;
     /* data */
 public:
-    int getNumberBranch() override;
-    void* getArrayBranch() override;
-    void setTasks(KnapsackTask* tasks, int num);
-    KnapsackResultBranch(KnapsackTask* tasks, int num);
+    KnapsackResultBranch(Branch* branches, int number);
     ~KnapsackResultBranch();
+};
+
+// close
+
+class KnapsackResultClose : public BranchBoundResultClosed
+{
+private:
+    /* data */
+public:
+    KnapsackResultClose();
+    ~KnapsackResultClose();
 };
 
 

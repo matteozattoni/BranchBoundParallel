@@ -1,0 +1,26 @@
+#ifndef BRANCHBOUNDALGORITHM_H
+#define BRANCHBOUNDALGORITHM_H
+
+#include "result.h"
+#include "branchboundbranch.h"
+#include "branchboundproblem.h"
+
+
+class BranchBoundAlgorithm
+{
+protected:
+    BranchBoundProblem* problem;
+    /* data */
+public:
+    virtual bool isBetterBound(int bound) = 0;
+    virtual void setBound(int bound) = 0;
+    virtual void setProblem(BranchBoundProblem*) = 0;
+    virtual void setProblemWithRootBranch(BranchBoundProblem*) = 0;
+    virtual void setBranch(const Branch*) = 0;
+    virtual BranchBoundResult* computeTaskIteration() = 0;
+    virtual bool hasCurrentBranch() = 0;
+    BranchBoundAlgorithm() {}
+    ~BranchBoundAlgorithm() {}
+};
+
+#endif

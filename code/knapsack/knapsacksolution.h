@@ -3,30 +3,32 @@
 
 #include <set>
 #include <utility>
-#include "knapsacklib.h"
+#include "knapsackproblem.h"
+#include "knapsackbranch.h"
 
 class KnapsackSolution
 {
 private:
-    int problemSize;
-    int solutionSize;
-    int weigth = 0;
-    int profit = 0;
-    KnapsackObject* problemElements;
-    KnapsackElementSolution* solutions;
+    const KnapsackProblem* problem;
+    int numberSolutionElements = 0;
+    int solutionTotalWeigth = 0;
+    int solutionTotalProfit = 0;
+    KnapsackBranchElement* solutionElements;
     /* data */
 public:
     void clear();
-    KnapsackSolution(KnapsackObject* problemElements, int problemSize);
+    KnapsackSolution(KnapsackProblem* problem);
     ~KnapsackSolution();
-    void copyElements(KnapsackElementSolution* elements, int size);
+    void setElementsFromBranch(const KnapsackBranch* branch);
     void addObjectToSolution(int id, bool in_knapsack, int profit, int weigth);
     bool hasObjectId(int id);
+    void copySolutionTo(KnapsackBranchElement* buff);
     int getSolutionWeigth();
     int getSolutionProfit();
     int getSolutionSize();
     void printSolution();
-    KnapsackElementSolution* getSolution();
+    KnapsackBranchElement* getElementsSolution();
+    void checkFeasibleSolution();
 };
 
 
