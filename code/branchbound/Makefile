@@ -8,5 +8,5 @@ branchboundprog: branchbound.o
 branchbound.o: branchbound.cpp
 	$(CC) $(CFLAGS) branchbound.cpp -o branchbound.o
 
-cleanbranchbound:
+clean:
 	rm -rf *.o

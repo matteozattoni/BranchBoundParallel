@@ -2,19 +2,33 @@ CC=mpic++
 
 CFLAGS=-c -Wall
 
-all: prog
+MAKE=make
 
-prog: branchbound.o knapsack.o main.o
-	$(CC) branchbound.o knapsack.o main.o -o prog
+BRANCHBOUNDIR="./branchbound"
+KNAPSACKDIR="./knapsack"
 
-branchbound.o: branchbound.cpp
-	$(CC) $(CFLAGS) branchbound.cpp
+all: $(BRANCHBOUNDIR) $(KNAPSACKDIR) prog
 
-knapsack.o: knapsackresult.cpp knapsackproblem.cpp knapsackbranch.cpp knapsackmemory.cpp knapsackmemorymanager.cpp knapsacksolution.cpp knapsack.cpp
-	$(CC) $(CFLAGS) knapsackresult.cpp knapsackproblem.cpp knapsackbranch.cpp knapsackmemory.cpp knapsackmemorymanager.cpp knapsacksolution.cpp knapsack.cpp
+prog: main.o
+	$(CC) main.o -o prog
+
+$(BRANCHBOUNDIR):
+	$(MAKE) -C $@
+
+$(KNAPSACKDIR):
+	$(MAKE) -C $@
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) main.cpp
 
-clean:
+clean: $(BRANCHBOUNDIR) $(KNAPSACKDIR) cleanmain
 	rm -rf *.o
+
+cleanmain:
+	rm -rf *.o
+
+$(BRANCHBOUNDIR):
+	$(MAKE) -C $@ clean
+
+$(KNAPSACKDIR):
+	$(MAKE) -C $@ clean

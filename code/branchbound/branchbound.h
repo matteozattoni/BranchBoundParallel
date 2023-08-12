@@ -2,6 +2,7 @@
 #define BRANCHBOUND_H
 
 #include <list>
+#include <ostream>
 
 #include "branchboundalgorithm.h"
 #include "branchboundproblem.h"
@@ -25,6 +26,7 @@ public:
     void start(BranchBoundProblem*,bool);
     BranchBound(BranchBoundAlgorithm*);
     void setBound(int bound);
+    friend std::ostream& operator<<(std::ostream& out, const BranchBound& data);
     ~BranchBound();
 };
 

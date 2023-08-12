@@ -23,20 +23,20 @@ using namespace std;
 
 int main()
 {
-    KnapsackMemoryManager *manager = KnapsackMemoryManager::singleton;
     Knapsack *knapsack = new Knapsack();
     BranchBound *branchBound = new BranchBound(knapsack);
-    KnapsackProblem *problem = KnapsackProblem::problemFromFile(SMALL_DATASET9);
+    KnapsackProblem *problem = KnapsackProblem::problemFromFile(SMALL_DATASET7);
     cout << "Start Branch and Bound" << endl;
     try
     {
         branchBound->start(problem, true);
-        KnapsackMemoryRecap *memoryRecap = manager->getMemoryInfo();
-        cout << *memoryRecap << endl;
+        //KnapsackMemoryRecap *memoryRecap = manager->getMemoryInfo();
+        //cout << *memoryRecap << endl;
         // cout << "Total number of states " << numberOfState << endl;
         // cout << "Total number of branch " << numberOfBranch << endl;
         cout << "Final solution is " << branchBound->bound << endl;
-        delete memoryRecap;
+        cout << *branchBound << endl;
+        //delete memoryRecap;
         return 0;
     }
     catch (eBranchBoundException e)

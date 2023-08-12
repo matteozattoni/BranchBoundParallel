@@ -1,6 +1,8 @@
 #ifndef KNAPSACKCLASS
 #define KNAPSACKCLASS
 
+#include <ostream>
+
 #include "../branchbound/branchboundalgorithm.h"
 #include "../branchbound/branchboundproblem.h"
 #include "../branchbound/result.h"
@@ -8,7 +10,6 @@
 #include "knapsacksolution.h"
 #include "knapsackproblem.h"
 #include "knapsackresult.h"
-#include "knapsackmemorymanager.h"
 
 
 using namespace std;
@@ -20,7 +21,6 @@ private:
     bool isComputingSolution = false;
     KnapsackSolution* currentSolution;
     void clearSolution();
-    KnapsackMemoryManager* manager;
 
     void setKnapsackProblem(KnapsackProblem*);
     KnapsackProblem* getKnapsackProblem();
@@ -35,9 +35,10 @@ public:
     void setBranch(const Branch*) override;
     BranchBoundResult* computeTaskIteration() override;
     bool hasCurrentBranch() override;
+    std::ostream& printAlgorithm(std::ostream& out) override;
 
     void printCurrentSolution();
-
+    friend std::ostream& operator <<(std::ostream &out, Knapsack const& data);
 
 };
 

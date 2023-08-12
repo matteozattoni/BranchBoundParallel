@@ -32,6 +32,8 @@ void BranchBound::start(BranchBoundProblem *problem, bool withInitBranch = false
             if (branch != nullptr)
             { // fetched from queue
                 algorithm->setBranch(branch);
+                // now safe to delete (has been copied)
+                delete branch;
             }
             else
             {
@@ -66,6 +68,7 @@ void BranchBound::computeOneStep()
             setBound(solution);
             // send to all other worker
         }
+        delete resultSolution;
         // deallocate solution
         break;
     }
@@ -78,11 +81,14 @@ void BranchBound::computeOneStep()
             const Branch *branch = &array[i];
             addBranchToQueue(branch);
         }
+        delete resultBranch;
         // deallocate result
         break;
     }
     case Closed:
     {
+        BranchBoundResultClosed *resultClose = dynamic_cast<BranchBoundResultClosed *>(result);
+        delete resultClose;
         // do nothing
         break;
     }
@@ -109,4 +115,10 @@ void BranchBound::setBound(int bound)
 {
     this->bound = bound;
     this->algorithm->setBound(bound);
+}
+
+std::ostream& operator<<(std::ostream& out, const BranchBound& data) {
+    out << "Branch and Bound Recap:" << std::endl;
+    data.algorithm->printAlgorithm(out);
+    return out;
 }
