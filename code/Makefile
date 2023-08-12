@@ -4,31 +4,30 @@ CFLAGS=-c -Wall
 
 MAKE=make
 
-BRANCHBOUNDIR="./branchbound"
-KNAPSACKDIR="./knapsack"
+BRANCHBOUNDIR=./branchbound
+KNAPSACKDIR=./knapsack
 
-all: $(BRANCHBOUNDIR) $(KNAPSACKDIR) prog
+all: prog
 
-prog: main.o
+prog: branchbound.o knapsack.o main.o
 	$(CC) main.o -o prog
 
-$(BRANCHBOUNDIR):
-	$(MAKE) -C $@
+branchbound.o:
+	$(MAKE) -C $(BRANCHBOUNDIR) compile
 
-$(KNAPSACKDIR):
-	$(MAKE) -C $@
+knapsack.o:
+	$(MAKE) -C $(KNAPSACKDIR) compile
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) main.cpp
 
-clean: $(BRANCHBOUNDIR) $(KNAPSACKDIR) cleanmain
-	rm -rf *.o
+clean: cleanbranchbound cleaknapsack cleanmain
 
 cleanmain:
 	rm -rf *.o
 
-$(BRANCHBOUNDIR):
-	$(MAKE) -C $@ clean
+cleanbranchbound:
+	 $(MAKE) -C $(BRANCHBOUNDIR) clean
 
-$(KNAPSACKDIR):
-	$(MAKE) -C $@ clean
+cleaknapsack:
+	$(MAKE) -C $(KNAPSACKDIR) clean

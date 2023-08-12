@@ -5,10 +5,10 @@ CC=mpic++
 CFLAGS=-c -Wall
 
 
-knapsackprog: knapsack.o
+compile: knapsack.o
 
 knapsackprog.o: knapsackresult.cpp knapsackproblem.cpp knapsackbranch.cpp knapsacksolution.cpp knapsack.cpp
-	$(CC) $(CFLAGS) knapsackresult.cpp knapsackproblem.cpp knapsackbranch.cpp knapsacksolution.cpp knapsack.cpp -o knapsack.o
+	$(CC) $(CFLAGS) knapsackresult.cpp knapsackproblem.cpp knapsackbranch.cpp knapsacksolution.cpp knapsack.cpp
 
 clean:
 	rm -rf *.o

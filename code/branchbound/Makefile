@@ -3,10 +3,10 @@ CC=mpic++
 
 CFLAGS=-c -Wall
 
-branchboundprog: branchbound.o 
+compile: branchbound.o 
 
 branchbound.o: branchbound.cpp
-	$(CC) $(CFLAGS) branchbound.cpp -o branchbound.o
+	$(CC) $(CFLAGS) branchbound.cpp
 
 clean:
 	rm -rf *.o
