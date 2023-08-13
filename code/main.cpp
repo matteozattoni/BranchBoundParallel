@@ -35,17 +35,12 @@ int main()
     try
     {
         branchBound->start(problem, true);
-        //KnapsackMemoryRecap *memoryRecap = manager->getMemoryInfo();
-        //cout << *memoryRecap << endl;
-        // cout << "Total number of states " << numberOfState << endl;
-        // cout << "Total number of branch " << numberOfBranch << endl;
         cout << *branchBound << endl;
         cout << "Final solution is " << branchBound->bound << endl;
         auto t1 = Time::now();
         fsec fs = t1 - t0;
         sec d = std::chrono::duration_cast<sec>(fs);
         cout << "Total duration: " << d.count() << "s" << endl;
-        //delete memoryRecap;
         return 0;
     }
     catch (eBranchBoundException e)

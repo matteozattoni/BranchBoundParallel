@@ -17,14 +17,12 @@ public:
 class Branch
 {
 protected:
-    const double branchBound;
     const int numberOfElement;
     const BranchElement* elements;
 public:
-    double getBranchBound() const {return branchBound;}
     int getNumberOfElements() const {return numberOfElement;}
     const BranchElement* getBranchElements() const {return elements;}
-    Branch(double bound, int nElements, BranchElement* el): branchBound(bound), numberOfElement(nElements), elements(el) {};
+    Branch(int nElements, BranchElement* el): numberOfElement(nElements), elements(el) {};
     virtual ~Branch() {};
 };
 

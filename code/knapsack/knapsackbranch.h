@@ -28,7 +28,7 @@ public:
     const KnapsackBranchElement *getKnapsackBranchElement() const;
     void * operator new(size_t size);
     void operator delete(void * p);
-    KnapsackBranch(double upperbound, int dimensionBuffer, int numberElemSolution, BranchElement * buffSolution);
+    KnapsackBranch(int dimensionBuffer, int numberElemSolution, BranchElement *buffSolution);
     ~KnapsackBranch();
 };
 

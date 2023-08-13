@@ -15,7 +15,7 @@ KnapsackBranchElement::KnapsackBranchElement(int id, bool isInsideKnapsack): Bra
 
 KnapsackBranchElement::~KnapsackBranchElement() {}
 
-KnapsackBranch::KnapsackBranch(double bound, int dimBuff, int numberElements, BranchElement* elementToCopy): Branch(bound, numberElements, elementsMemoryManager->allocate(dimBuff)), bufferDimension(dimBuff)
+KnapsackBranch::KnapsackBranch(int dimBuff, int numberElements, BranchElement* elementToCopy): Branch(numberElements, elementsMemoryManager->allocate(dimBuff)), bufferDimension(dimBuff)
 {
     if(dimBuff<numberElements) {
         throw OverflowArray;

@@ -31,7 +31,7 @@ void Knapsack::setProblem(BranchBoundProblem *problem)
 void Knapsack::setProblemWithRootBranch(BranchBoundProblem *problem)
 {
     setProblem(problem);
-    const KnapsackBranch *knapsackBranch = new KnapsackBranch(0.0, 0, 0, nullptr);
+    const KnapsackBranch *knapsackBranch = new KnapsackBranch(0, 0, nullptr);
     setBranch(knapsackBranch);
 }
 
@@ -81,8 +81,8 @@ BranchBoundResult *Knapsack::computeTaskIteration()
     const int knapsackTotalCapacity = knapsackProblem->getTotalKnapsackCapacity();
     const int solutionCapacity = currentSolution->getSolutionWeigth();
 
-    const KnapsackSubProblem *subProblem = computeSubSolution(elemSoluntion ,currentNumber);
-    //const KnapsackSubProblem *subProblem = computeSubSolution();
+    //const KnapsackSubProblem *subProblem = computeSubSolution(elemSoluntion ,currentNumber);
+    const KnapsackSubProblem *subProblem = computeSubSolution();
 
     const double upperbound = subProblem->upperbound; 
     const double residualCapacity = subProblem->residualCapacity;
@@ -137,11 +137,9 @@ BranchBoundResult *Knapsack::computeTaskIteration()
         { // branch
 
             int size = currentSolution->getSolutionSize();
-            double p = currentSolution->getSolutionProfit();
-
             KnapsackBranchElement *solutionBuffer = currentSolution->getElementsSolution();
             new (&solutionBuffer[size]) KnapsackBranchElement(idCriticalObject, false);
-            KnapsackBranch *newBranch = new KnapsackBranch(p, size + 1, size + 1, solutionBuffer); // seg fault
+            KnapsackBranch *newBranch = new KnapsackBranch(size + 1, size + 1, solutionBuffer); // seg fault
 
             currentSolution->addObjectToSolution(idCriticalObject, true, criticalObject->profit, criticalObject->weight);
             KnapsackResultBranch *resultBranch = new KnapsackResultBranch(newBranch, 1);
