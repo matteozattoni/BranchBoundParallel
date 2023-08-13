@@ -32,7 +32,5 @@ public:
     ~KnapsackBranch();
 };
 
-template class AllocatorFixedMemoryPool<KnapsackBranch>;
-template class AllocatorArrayMemoryPool<KnapsackBranchElement>;
 
 #endif

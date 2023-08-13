@@ -145,6 +145,4 @@ void KnapsackSolution::checkFeasibleSolution() {
         cout << "not respect the profit/weigth solution" << endl;
         throw InfeasbileSolution;
     }
-    
-
 }

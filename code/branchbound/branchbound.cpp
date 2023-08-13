@@ -69,7 +69,6 @@ void BranchBound::computeOneStep()
             // send to all other worker
         }
         delete resultSolution;
-        // deallocate solution
         break;
     }
     case ResultBranch:
@@ -82,14 +81,12 @@ void BranchBound::computeOneStep()
             addBranchToQueue(branch);
         }
         delete resultBranch;
-        // deallocate result
         break;
     }
     case Closed:
     {
         BranchBoundResultClosed *resultClose = dynamic_cast<BranchBoundResultClosed *>(result);
         delete resultClose;
-        // do nothing
         break;
     }
     }

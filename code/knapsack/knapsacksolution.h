@@ -13,6 +13,7 @@ private:
     int numberSolutionElements = 0;
     int solutionTotalWeigth = 0;
     int solutionTotalProfit = 0;
+    double solutionUpperbound = 0.0;
     KnapsackBranchElement* solutionElements;
     /* data */
 public:

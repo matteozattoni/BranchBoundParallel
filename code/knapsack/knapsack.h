@@ -14,6 +14,23 @@
 
 using namespace std;
 
+class KnapsackSubProblem
+{
+private:
+    static AllocatorFixedMemoryPool<KnapsackSubProblem>* memoryManager;
+    /* data */
+public:
+    const double upperbound;
+    const int idObject;
+    const bool foundObject;
+    const double residualCapacity;
+    KnapsackSubProblem(double bound, int id, bool isFoundObject, double capacity);
+    ~KnapsackSubProblem();
+    void * operator new(size_t size);
+    void operator delete(void * p);
+};
+
+
 class Knapsack: public BranchBoundAlgorithm {
 
 private:
@@ -24,6 +41,8 @@ private:
 
     void setKnapsackProblem(KnapsackProblem*);
     KnapsackProblem* getKnapsackProblem();
+    const KnapsackSubProblem* computeSubSolution(const KnapsackBranchElement* elem, int numb) const;
+    const KnapsackSubProblem* computeSubSolution() const;
 public:
     Knapsack(/* manager?*/);
     ~Knapsack();

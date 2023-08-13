@@ -1,6 +1,7 @@
 #include <iostream>
 #include <list>
 #include <algorithm>
+#include <chrono>
 #include "knapsack/knapsack.h"
 #include "branchbound/branchbound.h"
 
@@ -23,6 +24,10 @@ using namespace std;
 
 int main()
 {
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::seconds sec;
+    typedef std::chrono::duration<float> fsec;
+    auto t0 = Time::now();
     Knapsack *knapsack = new Knapsack();
     BranchBound *branchBound = new BranchBound(knapsack);
     KnapsackProblem *problem = KnapsackProblem::problemFromFile(SMALL_DATASET7);
@@ -34,8 +39,12 @@ int main()
         //cout << *memoryRecap << endl;
         // cout << "Total number of states " << numberOfState << endl;
         // cout << "Total number of branch " << numberOfBranch << endl;
-        cout << "Final solution is " << branchBound->bound << endl;
         cout << *branchBound << endl;
+        cout << "Final solution is " << branchBound->bound << endl;
+        auto t1 = Time::now();
+        fsec fs = t1 - t0;
+        sec d = std::chrono::duration_cast<sec>(fs);
+        cout << "Total duration: " << d.count() << "s" << endl;
         //delete memoryRecap;
         return 0;
     }
