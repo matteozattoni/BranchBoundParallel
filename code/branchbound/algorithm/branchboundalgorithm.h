@@ -1,7 +1,7 @@
 #ifndef BRANCHBOUNDALGORITHM_H
 #define BRANCHBOUNDALGORITHM_H
 
-#include "result.h"
+#include "branchboundresult.h"
 #include "branchboundbranch.h"
 #include "branchboundproblem.h"
 

@@ -3,10 +3,10 @@
 
 #include <ostream>
 
-#include "../branchbound/branchboundalgorithm.h"
-#include "../branchbound/branchboundproblem.h"
-#include "../branchbound/result.h"
-#include "../branchbound/branchboundexception.h"
+#include "../branchbound/algorithm/branchboundalgorithm.h"
+#include "../branchbound/algorithm/branchboundproblem.h"
+#include "../branchbound/algorithm/branchboundresult.h"
+#include "../branchbound/algorithm/branchboundexception.h"
 #include "knapsacksolution.h"
 #include "knapsackproblem.h"
 #include "knapsackresult.h"
@@ -58,6 +58,7 @@ public:
 
     void printCurrentSolution();
     friend std::ostream& operator <<(std::ostream &out, Knapsack const& data);
+    void printMemoryInfo(std::ostream& out);
 
 };
 

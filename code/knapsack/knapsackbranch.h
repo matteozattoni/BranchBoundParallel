@@ -1,9 +1,9 @@
 #ifndef KNAPSACKBRANCH_H
 #define KNAPSACKBRANCH_H
 
-#include "../branchbound/branchboundbranch.h"
-#include "../branchbound/branchboundexception.h"
-#include "../branchbound/branchboundmemory_impl.h"
+#include "../branchbound/algorithm/branchboundbranch.h"
+#include "../branchbound/algorithm/branchboundexception.h"
+#include "../branchbound/algorithm/branchboundmemory_impl.h"
 
 class KnapsackBranchElement : public BranchElement
 {
@@ -19,15 +19,18 @@ public:
 class KnapsackBranch : public Branch
 {
 private:
-    static AllocatorFixedMemoryPool<KnapsackBranch>* branchMemoryManager;
-    static AllocatorArrayMemoryPool<KnapsackBranchElement>* elementsMemoryManager;
     const int bufferDimension;
     /* data */
 public:
+    static AllocatorFixedMemoryPool<KnapsackBranch>* branchMemoryManager;
+    static AllocatorArrayMemoryPool<KnapsackBranchElement>* elementsMemoryManager;
     static std::ostream& printKnapsackBranchMemory(std::ostream& out);
+    static const KnapsackBranch &rootBranch;
     const KnapsackBranchElement *getKnapsackBranchElement() const;
     void * operator new(size_t size);
+    void * operator new(size_t size, void* ptr);
     void operator delete(void * p);
+    KnapsackBranch(int numElements, BranchElement* buff);
     KnapsackBranch(int dimensionBuffer, int numberElemSolution, BranchElement *buffSolution);
     ~KnapsackBranch();
 };

@@ -1,22 +1,15 @@
 #ifndef BRANCHBOUNDMEMORYMANAGER_H
 #define BRANCHBOUNDMEMORYMANAGER_H
 
+#include "algorithm/branchboundproblem.h"
+
 class BranchBoundMemoryManager
 {
 private:
     /* data */
 public:
-    BranchBoundMemoryManager(/* args */);
-    ~BranchBoundMemoryManager();
+    virtual BranchBoundProblem* getBranchBoundProblem() =0;
+    BranchBoundMemoryManager(/* args */) {};
+    virtual ~BranchBoundMemoryManager() {};
 };
-
-BranchBoundMemoryManager::BranchBoundMemoryManager(/* args */)
-{
-}
-
-BranchBoundMemoryManager::~BranchBoundMemoryManager()
-{
-}
-
-
 #endif

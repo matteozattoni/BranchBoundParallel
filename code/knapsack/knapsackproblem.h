@@ -2,8 +2,8 @@
 #define KNAPSACKPROBLEM_H
 
 #include <string>
-#include "../branchbound/branchboundproblem.h"
-#include "../branchbound/branchboundexception.h"
+#include "../branchbound/algorithm/branchboundproblem.h"
+#include "../branchbound/algorithm/branchboundexception.h"
 
 class KnapsackProblemElement: public BranchBoundProblemElement {
 public:

@@ -1,32 +1,39 @@
 #include "branchbound.h"
+#include "branchboundmemorymanager.h"
 #include <iostream>
 
-BranchBound::BranchBound(BranchBoundAlgorithm *algorithm)
+int BranchBound::rank = -1;
+
+BranchBound::BranchBound(MPIManager *mpiManager, BranchBoundAlgorithm *algorithm) : worldRank(mpiManager->getWorldRank())
 {
+    rank = mpiManager->getWorldRank();
+    this->mpiManager = mpiManager;
     this->algorithm = algorithm;
 }
 
-BranchBound::~BranchBound()
+BranchBound::~BranchBound() {}
+
+void BranchBound::start()
 {
-}
+    BranchBoundProblem *problem;
 
-void BranchBound::start(BranchBoundProblem *problem, bool withInitBranch = false)
-{
-
-    if (withInitBranch)
-    {
-        algorithm->setProblemWithRootBranch(problem);
-    }
-    else
-    {
-        algorithm->setProblem(problem); // pass the problem to the algorithm
-    }
-
+    problem = mpiManager->getBranchProblem();
     // get problem from mpi
-    // get initTask from mpi
+
+    algorithm->setProblem(problem);
+
+    if (firstExecution)
+    {
+        const Branch *rootBranch = mpiManager->getRootBranch();
+        if (rootBranch != nullptr)
+            algorithm->setBranch(rootBranch);
+        firstExecution = false;
+    }
+
     while (true)
     {
-        if (!algorithm->hasCurrentBranch())
+        // get bound from mpi if any
+        while (!algorithm->hasCurrentBranch())
         { // check if algorith has current task, if dont wait for one or extract it from list
             const Branch *branch = getTaskFromQueue();
             if (branch != nullptr)
@@ -37,25 +44,37 @@ void BranchBound::start(BranchBoundProblem *problem, bool withInitBranch = false
             }
             else
             {
-                std::cout << "finish list size: " << list.size() << std::endl;
-                break;
                 // get task from mpi: wait
+                BranchBoundResultBranch *resultBranch = mpiManager->waitForBranch();
+                const Branch *array = resultBranch->getArrayBranch();
+                for (int i = 0; i < resultBranch->getNumberBranch(); i++)
+                {
+                    const Branch *branch = &array[i];
+                    if (i == 0)
+                        algorithm->setBranch(branch);
+                    else
+                        addBranchToQueue(branch);
+                }
+                delete resultBranch;
             }
         }
-
         // call prologue from mpi
+        mpiManager->prologue([this](BranchBoundResult *result)
+                             { this->newBranchBoundResult(result); });
 
-        computeOneStep();
+        BranchBoundResult *result = algorithm->computeTaskIteration();
+        newBranchBoundResult(result);
 
         // call epilogue from mpi
-
-        // repeat
+        mpiManager->epilogue([this]()
+                             {
+            const Branch *s = this->getTaskFromQueue();
+            return s; });
     }
 }
 
-void BranchBound::computeOneStep()
+void BranchBound::newBranchBoundResult(BranchBoundResult *result)
 {
-    BranchBoundResult *result = algorithm->computeTaskIteration();
     eBranchBoundResultType resultType = result->getResultType();
     switch (resultType)
     {
@@ -63,10 +82,11 @@ void BranchBound::computeOneStep()
     {
         BranchBoundResultSolution *resultSolution = dynamic_cast<BranchBoundResultSolution *>(result);
         int solution = resultSolution->getSolutionResult();
+        //std::cout << "(from rank " << rank << ") sol is " << solution << std::endl;
         if (algorithm->isBetterBound(solution))
         {
+            //std::cout << "new bound: " << solution  <<std::endl;
             setBound(solution);
-            // send to all other worker
         }
         delete resultSolution;
         break;
@@ -78,6 +98,7 @@ void BranchBound::computeOneStep()
         for (int i = 0; i < resultBranch->getNumberBranch(); i++)
         {
             const Branch *branch = &array[i];
+
             addBranchToQueue(branch);
         }
         delete resultBranch;
@@ -114,7 +135,8 @@ void BranchBound::setBound(int bound)
     this->algorithm->setBound(bound);
 }
 
-std::ostream& operator<<(std::ostream& out, const BranchBound& data) {
+std::ostream &operator<<(std::ostream &out, const BranchBound &data)
+{
     out << "Branch and Bound Recap:" << std::endl;
     data.algorithm->printAlgorithm(out);
     return out;

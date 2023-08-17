@@ -9,6 +9,10 @@ void* KnapsackResultSolution::operator new(size_t size) {
     return ptr;
 }
 
+void* KnapsackResultSolution::operator new(size_t size, void* ptr) {
+    return ptr;
+}
+
 void KnapsackResultSolution::operator delete(void* ptr) {
     KnapsackResultSolution::memoryManager->deallocate((KnapsackResultSolution*)ptr);
 }
@@ -30,6 +34,10 @@ void* KnapsackResultBranch::operator new(size_t size) {
     return ptr;
 }
 
+void* KnapsackResultBranch::operator new(size_t size, void* ptr) {
+    return ptr;
+}
+
 void KnapsackResultBranch::operator delete(void* ptr) {
     KnapsackResultBranch::memoryManager->deallocate((KnapsackResultBranch*)ptr);
 }
@@ -43,6 +51,10 @@ KnapsackResultClose::~KnapsackResultClose(){}
 
 void* KnapsackResultClose::operator new(size_t size) {
     void* ptr = KnapsackResultClose::memoryManager->allocate();
+    return ptr;
+}
+
+void* KnapsackResultClose::operator new(size_t size, void* ptr) {
     return ptr;
 }
 
