@@ -14,8 +14,6 @@
 class MPIManager
 {
 private:
-    int totalSent = 0;
-    int totalReceived = 0;
     MPIDataManager &dataManager;
     int worldSize;
     int worldRank;

@@ -123,7 +123,6 @@ void MPIManager::epilogue(std::function<const Branch*()> callback) {
                 MPI_Issend(pair.first, pair.second, dataManager.getBranchType(), i, tagMessage.branch, workpoolComm, &sentBranch[i].request);
                 sentBranch[i].isSent = true;
                 sentBranch[i].sentBufferAndCount = pair;
-                totalSent++;
             } else {
                 break;
             }
@@ -138,7 +137,6 @@ void MPIManager::epilogue(std::function<const Branch*()> callback) {
                     MPI_Issend(pair.first, pair.second, dataManager.getBranchType(), i, tagMessage.branch, workpoolComm, &sentBranch[i].request);
                     sentBranch[i].isSent = true;
                     sentBranch[i].sentBufferAndCount = pair;
-                    totalSent++;
                 } else {
                     break;
                 }
@@ -156,7 +154,6 @@ BranchBoundResultBranch* MPIManager::waitForBranch() {
             if(isCompleted) { // here a recevice is commited AND completed
                 BranchBoundResultBranch* branch = dataManager.getBranchFromBuff(receiveBranch[i].branchBuffer, receiveBranch[i].count);
                 receiveBranch[i].ready = false;
-                totalReceived++;
                 return branch;
             }
         }
@@ -175,20 +172,16 @@ BranchBoundResultBranch* MPIManager::waitForBranch() {
     if (nRecvReady > 0) { // if there is come receive commited i'll wait for it
         MPI_Waitany(nRecvReady, arrayRequest, &index, &status);
         int count;
-        
         BranchBoundResultBranch* branch = dataManager.getBranchFromBuff(receiveBranch[index].branchBuffer, receiveBranch[index].count);
         receiveBranch[index].ready = false;
-        totalReceived++;
         return branch;
-    } else { // all receive are not commited so i'll wait the first message from other
-        //cout << "rank: " << worldRank << " * before stop - total recv: " << totalReceived << " * total send: " << totalSent << endl;
+    } else { // all receive are not commited so i'll wait the first message from other (termination)
         MPI_Probe(MPI_ANY_SOURCE, tagMessage.branch, workpoolComm, &status);
         int count;
         MPI_Get_count(&status, dataManager.getBranchType(), &count);
         void* buffBranch = dataManager.getEmptyBranchElementBuff(count);
         MPI_Recv(buffBranch, count, dataManager.getBranchType(), status.MPI_SOURCE, status.MPI_TAG, workpoolComm, &status);
         BranchBoundResultBranch* branch = dataManager.getBranchFromBuff(buffBranch, count);
-        totalReceived++;
         return branch;
     }
     
