@@ -45,17 +45,30 @@ void BranchBound::start()
             else
             {
                 // get task from mpi: wait
-                BranchBoundResultBranch *resultBranch = mpiManager->waitForBranch();
-                const Branch *array = resultBranch->getArrayBranch();
-                for (int i = 0; i < resultBranch->getNumberBranch(); i++)
+                try
                 {
-                    const Branch *branch = &array[i];
-                    if (i == 0)
-                        algorithm->setBranch(branch);
-                    else
-                        addBranchToQueue(branch);
+                    BranchBoundResultBranch *resultBranch = mpiManager->waitForBranch();
+                    const Branch *array = resultBranch->getArrayBranch();
+                    for (int i = 0; i < resultBranch->getNumberBranch(); i++)
+                    {
+                        const Branch *branch = &array[i];
+                        if (i == 0)
+                            algorithm->setBranch(branch);
+                        else
+                            addBranchToQueue(branch);
+                    }
+                    delete resultBranch;
                 }
-                delete resultBranch;
+                catch (const mpiException e)
+                {
+                    if (e == TERMINATED) {
+                        if (BranchBound::rank == 0)
+                            throw e;
+                        else
+                            throw 0;
+                    }
+                    throw e;
+                }
             }
         }
         // call prologue from mpi
@@ -82,10 +95,10 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
     {
         BranchBoundResultSolution *resultSolution = dynamic_cast<BranchBoundResultSolution *>(result);
         int solution = resultSolution->getSolutionResult();
-        //std::cout << "(from rank " << rank << ") sol is " << solution << std::endl;
+        // std::cout << "(from rank " << rank << ") sol is " << solution << std::endl;
         if (algorithm->isBetterBound(solution))
         {
-            //std::cout << "new bound: " << solution  <<std::endl;
+            // std::cout << "new bound: " << solution  <<std::endl;
             setBound(solution);
         }
         delete resultSolution;

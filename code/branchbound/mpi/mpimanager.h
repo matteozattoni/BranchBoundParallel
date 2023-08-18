@@ -11,6 +11,10 @@
 #define MASTER_RANK 0
 #define WORKPOOL_N 4
 
+enum eTokenColor {tokenWhite, tokenBlack};
+enum eNodeColor {nodeWhite , nodeBlack};
+enum mpiException { TERMINATED};
+
 class MPIManager
 {
 private:
@@ -21,11 +25,9 @@ private:
     int workpoolRank;
     int workpoolSize;
     MPI_Group masterpoolGroup;
+
     /* data */
-    const struct {
-        int bound = 0;
-        int branch = 1;
-    } tagMessage;
+    enum tagMessage { TAG_BOUND, TAG_BRANCH, TAG_TOKEN, TAG_TERMINATION};
     struct {
         MPI_Request request;
         void* boundBuffer;
@@ -41,7 +43,17 @@ private:
         MPI_Request request;
         bool isSent = false;
     } sentBranch[WORKPOOL_N];
+    struct {
+        eTokenColor tokenColor = tokenWhite;
+        eNodeColor nodeColor = nodeBlack;
+        bool hasToken = false;
+        MPI_Request request;
+    } tokenTermination;
     void loadBalance(std::function<void(BranchBoundResult*)>);
+    BranchBoundResultBranch* returnBranchFromStatus(MPI_Status status);
+    // return branch or throw terminate
+    BranchBoundResultBranch* terminationProtocol();
+    void sendToken(eTokenColor sendWithThisColor);
 
 public:
     MPIManager(MPIDataManager* manager);
