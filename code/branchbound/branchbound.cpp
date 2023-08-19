@@ -1,11 +1,12 @@
 #include "branchbound.h"
 #include "branchboundmemorymanager.h"
 #include "algorithm/branchboundexception.h"
+#include "mpi/mpiexceptions.h"
 #include <iostream>
 
 int BranchBound::rank = -1;
 
-BranchBound::BranchBound(MPIManager *mpiManager, BranchBoundAlgorithm *algorithm) : worldRank(mpiManager->getWorldRank())
+BranchBound::BranchBound(MPIBranchBoundManager *mpiManager, BranchBoundAlgorithm *algorithm) : worldRank(mpiManager->getWorldRank())
 {
     rank = mpiManager->getWorldRank();
     this->mpiManager = mpiManager;
@@ -60,15 +61,13 @@ void BranchBound::start()
                     }
                     delete resultBranch;
                 }
-                catch (const mpiException e)
+                catch (const MPIGlobalTerminationException& e)
                 {
-                    if (e == TERMINATED)
-                    {
                         if (BranchBound::rank == 0)
                             throw e;
                         else
                             throw 0;
-                    }
+                    
                     throw e;
                 }
             }

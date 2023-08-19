@@ -5,7 +5,7 @@
 #include "knapsack/knapsackmemorymanager.h"
 #include "knapsack/knapsack.h"
 #include "branchbound/branchbound.h"
-#include "branchbound/mpi/mpimanager.h"
+#include "branchbound/mpi/mpibranchboundmanager.h"
 #include "mpi.h"
 
 using namespace std;
@@ -65,11 +65,11 @@ void test3()
     // offsets[1] = offsetof(Data2, value2);
 
     // Definisci un tipo derivato personalizzato che inizia dal doppio offset
-    MPI_Type_create_struct(1,                                        // Numero di blocchi
-                           new int[1]{1},                         // Numero di elementi in ogni blocco
-                           offsets,                                  // Offset
+    MPI_Type_create_struct(1,                            // Numero di blocchi
+                           new int[1]{1},                // Numero di elementi in ogni blocco
+                           offsets,                      // Offset
                            new MPI_Datatype[1]{MPI_INT}, // Tipi di dati in ogni blocco
-                           &mpi_data_type);                          // Tipo derivato risultante
+                           &mpi_data_type);              // Tipo derivato risultante
 
     MPI_Aint lb, extent;
     MPI_Type_get_extent(mpi_data_type, &lb, &extent);
@@ -238,15 +238,15 @@ int main()
     typedef std::chrono::seconds sec;
     typedef std::chrono::duration<float> fsec;
 
-    //test3();
-    //return 0;
+    // test3();
+    // return 0;
     auto t0 = Time::now();
     Knapsack *knapsack = new Knapsack();
     KnapsackMemoryManager *man = new KnapsackMemoryManager();
     man->testProblemMemory();
     man->testBranchMemory();
     man->testBoundMemory();
-    MPIManager *mpiManger = new MPIManager(man);
+    MPIBranchBoundManager *mpiManger = new MPIBranchBoundManager(*man);
     BranchBound *branchBound = new BranchBound(mpiManger, knapsack);
     try
     {
@@ -257,35 +257,32 @@ int main()
         delete mpiManger;
         return 1;
     }
-    catch (mpiException e)
+    catch (MPIGlobalTerminationException &e)
     {
-        if (e == TERMINATED)
-        {
-            cout << "Final solution is " << branchBound->bound << endl;
-            delete branchBound;
-            delete knapsack;
-            delete man;
-            delete mpiManger;
-            auto t1 = Time::now();
-            fsec fs = t1 - t0;
-            sec d = std::chrono::duration_cast<sec>(fs);
-            cout << "Total duration: " << d.count() << "s" << endl;
-            return 0;
-        }
-        throw e;
+        cout << "Final solution is " << branchBound->bound << endl;
+        delete branchBound;
+        delete knapsack;
+        delete man;
+        delete mpiManger;
+        auto t1 = Time::now();
+        fsec fs = t1 - t0;
+        sec d = std::chrono::duration_cast<sec>(fs);
+        cout << "Total duration: " << d.count() << "s" << endl;
+        return 0;
     }
     catch (int e)
     {
-        if (e == 0) {
+        if (e == 0)
+        {
             delete branchBound;
             delete knapsack;
             delete man;
             delete mpiManger;
             return 0;
         }
-         
+
         cout << "error " << e << endl;
         // std::cerr << e << '\n';
         return 1;
-    } 
+    }
 }
