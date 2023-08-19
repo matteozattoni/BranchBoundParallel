@@ -6,7 +6,7 @@
 
 #define GLOBAL_MASTER_RANK 0
 
-class MPIGlobalManager: public MPIManager
+class MasterpoolManager: public MPIManager
 {
 private:
     int worldSize;
@@ -19,8 +19,8 @@ public:
     void prologue(std::function<void(BranchBoundResult*)>) override;
     void epilogue(std::function<const Branch*()>) override;
     void sendBound(BranchBoundResultSolution* bound) override;
-    MPIGlobalManager(MPIDataManager &manager);
-    ~MPIGlobalManager();
+    MasterpoolManager(MPIDataManager &manager);
+    ~MasterpoolManager();
 };
 
 #endif

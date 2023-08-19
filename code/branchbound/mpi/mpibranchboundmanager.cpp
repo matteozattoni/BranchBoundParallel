@@ -8,7 +8,7 @@ MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : MPIManag
 {
     MPI_Init(NULL, NULL);
     manager.commitDatatypes();
-    globalManager = new MPIGlobalManager(manager);
+    masterpoolManager = new MasterpoolManager(manager);
     workpoolManager = new WorkpoolManager(manager);
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
@@ -17,12 +17,14 @@ MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : MPIManag
 
 MPIBranchBoundManager::~MPIBranchBoundManager()
 {
+    delete masterpoolManager;
+    delete workpoolManager;
     MPI_Finalize();
 }
 
 const Branch *MPIBranchBoundManager::getRootBranch()
 {
-    return globalManager->getRootBranch();
+    return masterpoolManager->getRootBranch();
 }
 
 void MPIBranchBoundManager::init()
@@ -31,7 +33,7 @@ void MPIBranchBoundManager::init()
 
 BranchBoundProblem *MPIBranchBoundManager::getBranchProblem()
 {
-    return globalManager->getBranchProblem();
+    return masterpoolManager->getBranchProblem();
 }
 
 void MPIBranchBoundManager::prologue(std::function<void(BranchBoundResult *)> callback)

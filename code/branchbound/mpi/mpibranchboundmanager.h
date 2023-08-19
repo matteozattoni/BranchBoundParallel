@@ -6,7 +6,7 @@
 
 #include "mpidatamanager.h"
 #include "workpoolmanager.h"
-#include "mpiglobalmanager.h"
+#include "masterpoolmanager.h"
 
 #define MASTER_RANK 0
 
@@ -21,7 +21,7 @@ private:
     int workpoolSize;
     MPI_Group masterpoolGroup;
     MPIManager *workpoolManager;
-    MPIManager *globalManager;
+    MPIManager *masterpoolManager;
 
 
 public:

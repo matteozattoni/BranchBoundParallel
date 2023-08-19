@@ -1,17 +1,20 @@
-#include "mpiglobalmanager.h"
+#include "masterpoolmanager.h"
 
 
-MPIGlobalManager::MPIGlobalManager(MPIDataManager &manager): MPIManager(manager)
+MasterpoolManager::MasterpoolManager(MPIDataManager &manager): MPIManager(manager)
 {
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+    MPI_Group commGroup;
+    MPI_Comm_group(MPI_COMM_WORLD, &commGroup);
+
 }
 
-MPIGlobalManager::~MPIGlobalManager()
+MasterpoolManager::~MasterpoolManager()
 {
 }
 
-BranchBoundProblem* MPIGlobalManager::getBranchProblem() {
+BranchBoundProblem* MasterpoolManager::getBranchProblem() {
     MPI_Datatype problemType = dataManager.getProblemType();
     MPI_Datatype problemElementType = dataManager.getProblemElementType();
     void *problemDescritpionBuffer;
@@ -37,7 +40,7 @@ BranchBoundProblem* MPIGlobalManager::getBranchProblem() {
     }
 }
 
-const Branch* MPIGlobalManager::getRootBranch() {
+const Branch* MasterpoolManager::getRootBranch() {
     if (worldRank == 0)
         return dataManager.getRootBranch();
     else
@@ -45,21 +48,21 @@ const Branch* MPIGlobalManager::getRootBranch() {
 }
 
 
-BranchBoundResultBranch* MPIGlobalManager::waitForBranch() {
+BranchBoundResultBranch* MasterpoolManager::waitForBranch() {
     throw MPIUnimplementedException("MPIGlobalManager::waitForBranch()");
 }
 
 
-void MPIGlobalManager::prologue(std::function<void(BranchBoundResult*)>) {
+void MasterpoolManager::prologue(std::function<void(BranchBoundResult*)>) {
     throw MPIUnimplementedException("MPIGlobalManager::prologue");
 }
 
 
-void MPIGlobalManager::epilogue(std::function<const Branch*()>) {
+void MasterpoolManager::epilogue(std::function<const Branch*()>) {
     throw MPIUnimplementedException("MPIGlobalManager::epilogue");
 }
 
 
-void MPIGlobalManager::sendBound(BranchBoundResultSolution* bound) {
+void MasterpoolManager::sendBound(BranchBoundResultSolution* bound) {
     throw MPIUnimplementedException("MPIGlobalManager::sendBound");
 }
