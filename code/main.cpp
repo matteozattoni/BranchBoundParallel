@@ -38,6 +38,74 @@ struct Data2
     bool value2;
 };
 
+struct Data3
+{
+    void *ptr1;
+    int value1;
+    void *ptr2, *ptr3;
+};
+
+void test3()
+{
+
+    MPI_Init(NULL, NULL);
+
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    MPI_Datatype mpi_data_type;
+
+    MPI_Aint offsets[1];
+    MPI_Aint a, base;
+    Data3 test;
+    MPI_Get_address(&test, &base);
+    MPI_Get_address(&test.value1, &a);
+    offsets[0] = a - base;
+    // offsets[0] = offsetof(Data2, value1);
+    // offsets[1] = offsetof(Data2, value2);
+
+    // Definisci un tipo derivato personalizzato che inizia dal doppio offset
+    MPI_Type_create_struct(1,                                        // Numero di blocchi
+                           new int[1]{1},                         // Numero di elementi in ogni blocco
+                           offsets,                                  // Offset
+                           new MPI_Datatype[1]{MPI_INT}, // Tipi di dati in ogni blocco
+                           &mpi_data_type);                          // Tipo derivato risultante
+
+    MPI_Aint lb, extent;
+    MPI_Type_get_extent(mpi_data_type, &lb, &extent);
+
+    MPI_Datatype resized_mpi_data_type;
+    MPI_Type_create_resized(mpi_data_type, lb, sizeof(Data3), &resized_mpi_data_type);
+
+    MPI_Type_commit(&mpi_data_type);
+    MPI_Type_commit(&resized_mpi_data_type);
+
+    if (rank == 0)
+    {
+        Data3 dataToSend[4];
+        dataToSend[0].value1 = 3;
+        dataToSend[1].value1 = 1;
+        dataToSend[2].value1 = 5;
+        dataToSend[3].value1 = 67;
+
+        MPI_Send(dataToSend, 4, resized_mpi_data_type, 1, 0, MPI_COMM_WORLD);
+    }
+    else if (rank == 1)
+    {
+        Data3 receivedData[4];
+
+        MPI_Recv(receivedData, 4, resized_mpi_data_type, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        for (int i = 0; i < 4; ++i)
+        {
+            std::cout << "Received values " << i + 1 << ": " << receivedData[i].value1 << std::endl;
+        }
+    }
+
+    MPI_Type_free(&mpi_data_type);
+    MPI_Finalize();
+}
+
 void test2()
 {
 
@@ -170,9 +238,9 @@ int main()
     typedef std::chrono::seconds sec;
     typedef std::chrono::duration<float> fsec;
 
-    // test2();
-    // return 0;
-
+    //test3();
+    //return 0;
+    auto t0 = Time::now();
     Knapsack *knapsack = new Knapsack();
     KnapsackMemoryManager *man = new KnapsackMemoryManager();
     man->testProblemMemory();
@@ -198,6 +266,10 @@ int main()
             delete knapsack;
             delete man;
             delete mpiManger;
+            auto t1 = Time::now();
+            fsec fs = t1 - t0;
+            sec d = std::chrono::duration_cast<sec>(fs);
+            cout << "Total duration: " << d.count() << "s" << endl;
             return 0;
         }
         throw e;
@@ -216,29 +288,4 @@ int main()
         // std::cerr << e << '\n';
         return 1;
     } 
-
-    // cout << "size " << sizeof(t2) << endl;
-
-    /* auto t0 = Time::now();
-    Knapsack *knapsack = new Knapsack();
-    BranchBound *branchBound = new BranchBound(knapsack);
-    KnapsackProblem *problem = KnapsackProblem::problemFromFile(SMALL_DATASET1);
-    knapsack->printMemoryInfo(cout);
-    cout << "Start Branch and Bound (Knapsack Problem)" << endl;
-    try
-    {
-        branchBound->start(problem, true);
-        cout << *branchBound << endl;
-        cout << "Final solution is " << branchBound->bound << endl;
-        auto t1 = Time::now();
-        fsec fs = t1 - t0;
-        sec d = std::chrono::duration_cast<sec>(fs);
-        cout << "Total duration: " << d.count() << "s" << endl;
-        return 0;
-    }
-    catch (eBranchBoundException e)
-    {
-        cout << "Exception n: " << e << endl;
-        return 1;
-    } */
 }

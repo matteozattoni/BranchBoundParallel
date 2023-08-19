@@ -1,5 +1,6 @@
 #include "branchbound.h"
 #include "branchboundmemorymanager.h"
+#include "algorithm/branchboundexception.h"
 #include <iostream>
 
 int BranchBound::rank = -1;
@@ -61,7 +62,8 @@ void BranchBound::start()
                 }
                 catch (const mpiException e)
                 {
-                    if (e == TERMINATED) {
+                    if (e == TERMINATED)
+                    {
                         if (BranchBound::rank == 0)
                             throw e;
                         else
@@ -72,17 +74,36 @@ void BranchBound::start()
             }
         }
         // call prologue from mpi
-        mpiManager->prologue([this](BranchBoundResult *result)
-                             { this->newBranchBoundResult(result); });
+        mpiManager->prologue(
+            [this](BranchBoundResult *result)
+            { 
+                BranchBoundResultSolution *resultSolution = dynamic_cast<BranchBoundResultSolution *>(result);
+                if (resultSolution != nullptr) {
+                    int solution = resultSolution->getSolutionResult();
+                    // std::cout << "(from rank " << rank << ") sol is " << solution << std::endl;
+                    if (algorithm->isBetterBound(solution))
+                        {
+                        setBound(solution);
+                        }
+                        delete resultSolution;
+                } else
+                    this->newBranchBoundResult(result); });
 
-        BranchBoundResult *result = algorithm->computeTaskIteration();
-        newBranchBoundResult(result);
+        try
+        {
+            BranchBoundResult *result = algorithm->computeTaskIteration();
+            newBranchBoundResult(result);
 
-        // call epilogue from mpi
-        mpiManager->epilogue([this]()
-                             {
+            // call epilogue from mpi
+            mpiManager->epilogue([this]()
+                                 {
             const Branch *s = this->getTaskFromQueue();
             return s; });
+        }
+        catch (eBranchBoundException e)
+        {
+            std::cerr << e << '\n';
+        }
     }
 }
 
@@ -98,8 +119,9 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
         // std::cout << "(from rank " << rank << ") sol is " << solution << std::endl;
         if (algorithm->isBetterBound(solution))
         {
-            // std::cout << "new bound: " << solution  <<std::endl;
+            //std::cout << "new local bound: " << solution  <<std::endl;
             setBound(solution);
+            sendBound(resultSolution);
         }
         delete resultSolution;
         break;
@@ -124,6 +146,10 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
         break;
     }
     }
+}
+
+void BranchBound::sendBound(BranchBoundResultSolution* solution) {
+    mpiManager->sendBound(solution);
 }
 
 const Branch *BranchBound::getTaskFromQueue()

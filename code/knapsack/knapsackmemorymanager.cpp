@@ -64,8 +64,9 @@ void KnapsackMemoryManager::createProblemElementDatatype() {
 void KnapsackMemoryManager::createBoundDatatype() {
     struct
     {
-        void *ptrVirtualTable1, *ptrVirtualTable2, *ptrVirtualTable3;
+        void *a;
         int solution;
+        void *c, *b;
 
     } boundStruct;
     int numberOfBlocks = 1;
@@ -134,17 +135,36 @@ void KnapsackMemoryManager::commitDatatypes() {
         int idElement;
         bool isInKnapsack;
     };
+    struct boundStruct
+    {
+        void *a;
+        int solution;
+        void *c, *b;
+
+    };
+    MPI_Datatype notResizedDatatype;
     MPI_Aint lb, ext;
+
+    notResizedDatatype = problemElementDatatype;
     MPI_Type_get_extent(problemElementDatatype, &lb, &ext);
     MPI_Type_create_resized(problemElementDatatype, lb, sizeof(problemElementStruct), &problemElementDatatype);
+    MPI_Type_free(&notResizedDatatype);
+    notResizedDatatype = branchDatatype;
     MPI_Type_get_extent(branchDatatype, &lb, &ext);
     MPI_Type_create_resized(branchDatatype, lb, sizeof(branchElementStruct), &branchDatatype);
+    MPI_Type_free(&notResizedDatatype);
+    notResizedDatatype = boundDatatype;
+    MPI_Type_get_extent(boundDatatype, &lb, &ext);
+    MPI_Type_create_resized(boundDatatype, lb, sizeof(boundStruct), &boundDatatype);
+    MPI_Type_free(&notResizedDatatype);
+    MPI_Type_get_extent(boundDatatype, &lb, &ext);
+    assert(sizeof(boundStruct) == ext);
 }
 
 // Problem
 
 BranchBoundProblem* KnapsackMemoryManager::getLocalProblem() const {
-    return KnapsackProblem::problemFromFile(SMALL_DATASET7);
+    return KnapsackProblem::problemFromFile(FILEPATH);
 }
 
 void* KnapsackMemoryManager::getProblemTypeBuffFrom(BranchBoundProblem* problem) {
@@ -200,6 +220,12 @@ BranchBoundProblem* KnapsackMemoryManager::getRemoteProblem(void* problemType, s
 }
 
 // BOUND
+
+std::pair<void*,int> KnapsackMemoryManager::getBoundBuffer(const BranchBoundResultSolution* solution) {
+    void* ptr = (void*) solution;
+    return std::pair<void*,int>(ptr,1);
+}
+
 void* KnapsackMemoryManager::getEmptybBoundBuff() {
     void* ptr = KnapsackResultSolution::memoryManager->allocate();
     return ptr;
@@ -208,11 +234,13 @@ void* KnapsackMemoryManager::getEmptybBoundBuff() {
 BranchBoundResultSolution* KnapsackMemoryManager::getSolutionFromBound(void* buff) {
     struct boundStruct
     {
-        void *ptrVirtualTable;
+        void *a;
         int solution;
+        void *c, *b;
 
     };
     int solution = ((boundStruct*) buff)->solution;
+    //cout << "mem " << solution << " other " << ((boundStruct*) buff)->a << " " << ((boundStruct*) buff)->c << " " << ((boundStruct*) buff)->b << endl;
     KnapsackResultSolution* solPtr = (KnapsackResultSolution*) buff;
     new(solPtr) KnapsackResultSolution(solution);
     return solPtr;
@@ -300,18 +328,21 @@ void KnapsackMemoryManager::testProblemMemory()
 
 void KnapsackMemoryManager::testBoundMemory() {
     // TEST KnapsackBranch Memory Layout
-    struct boundStruct
+    struct BoundStruct
     {
-        void *a, *b;
-        void *ptrVirtualTable;
+        void *a;
         int solution;
+        void *c, *b;
 
     } boundStruct;
     boundStruct.solution = 21;
     assert(sizeof(boundStruct)==sizeof(KnapsackResultSolution));
     KnapsackResultSolution* kb = (KnapsackResultSolution*)&boundStruct;
-    new(kb) KnapsackResultSolution(boundStruct.solution);
+    new(kb) const KnapsackResultSolution(boundStruct.solution);
     assert(kb->getSolutionResult() == 21);
+    KnapsackResultSolution newKb(50);
+    int solution = ((BoundStruct*) &newKb)->solution;
+    assert (solution == 50);
 }
 
 void KnapsackMemoryManager::testBranchMemory() {

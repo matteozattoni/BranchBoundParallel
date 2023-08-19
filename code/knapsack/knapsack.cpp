@@ -150,7 +150,7 @@ BranchBoundResult *Knapsack::computeTaskIteration()
             return resultBranch;
         }
     }
-
+    cout << residualCapacity << endl;
     throw InfeasbileSolution;
 }
 

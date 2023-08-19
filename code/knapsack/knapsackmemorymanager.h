@@ -16,6 +16,8 @@
 #define SMALL_DATASET8 "datasets/small/f9_l-d_kp_5_80"       // opt 130
 #define SMALL_DATASET9 "datasets/small/f10_l-d_kp_20_879"       // opt 1025
 
+#define FILEPATH SMALL_DATASET7
+
 
 #define MEDIUM_DATASET "datasets/knapPI_1_100_1000_1" // opt 9147
 #define MEDIUM_DATASET2 "datasets/knapPI_1_200_1000_1" // opt 11238
@@ -71,6 +73,7 @@ KnapsackMemoryManager(/* args */);
     BranchBoundProblem* getRemoteProblem(void* problemType, std::pair<void*,int> problemElements) override;
 
     // BOUND
+    std::pair<void*,int> getBoundBuffer(const BranchBoundResultSolution* solution) override;
     void* getEmptybBoundBuff() override;
     BranchBoundResultSolution* getSolutionFromBound(void* buff) override;
     

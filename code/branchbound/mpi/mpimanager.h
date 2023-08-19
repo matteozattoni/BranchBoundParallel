@@ -50,6 +50,7 @@ private:
         MPI_Request request;
     } tokenTermination;
     void loadBalance(std::function<void(BranchBoundResult*)>);
+    void receiveBoundMessage(std::function<void(BranchBoundResult*)>);
     BranchBoundResultBranch* returnBranchFromStatus(MPI_Status status);
     // return branch or throw terminate
     BranchBoundResultBranch* terminationProtocol();
@@ -64,6 +65,7 @@ public:
     const Branch* getRootBranch();
     void prologue(std::function<void(BranchBoundResult*)>);
     void epilogue(std::function<const Branch*()>);
+    void sendBound(BranchBoundResultSolution* bound);
     void init();
     void defineType();
     

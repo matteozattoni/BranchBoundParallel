@@ -71,18 +71,27 @@ void MPIManager::prologue(std::function<void(BranchBoundResult *)> callback)
     int boundFlag;
     MPI_Status status;
 
-    // bound message??? mpi test and probe for bound
-    MPI_Test(&receiveBound.request, &boundFlag, &status);
-    if (boundFlag == true)
+    // get bound messages if any
+    receiveBoundMessage(callback);
+
+    // load balance protocol
+    loadBalance(callback);
+}
+
+void MPIManager::receiveBoundMessage(std::function<void(BranchBoundResult *)> callback) {
+    int isBoundMessageArrived;
+    MPI_Status status;
+    MPI_Test(&(receiveBound.request), &isBoundMessageArrived, &status);
+    if (isBoundMessageArrived)
     {
         BranchBoundResultSolution *sol = dataManager.getSolutionFromBound(receiveBound.boundBuffer);
         callback(sol);
         receiveBound.boundBuffer = nullptr;
         // there are more?
-        while (boundFlag)
+        while (isBoundMessageArrived)
         {
-            MPI_Iprobe(MPI_ANY_SOURCE, TAG_BOUND, workpoolComm, &boundFlag, &status);
-            if (boundFlag)
+            MPI_Iprobe(MPI_ANY_SOURCE, TAG_BOUND, workpoolComm, &isBoundMessageArrived, &status);
+            if (isBoundMessageArrived)
             {
                 // get buffer for bound
                 receiveBound.boundBuffer = dataManager.getEmptybBoundBuff();
@@ -93,11 +102,8 @@ void MPIManager::prologue(std::function<void(BranchBoundResult *)> callback)
             }
         }
         receiveBound.boundBuffer = dataManager.getEmptybBoundBuff();
-        MPI_Irecv(receiveBound.boundBuffer, 1, dataManager.getBoundType(), MPI_ANY_SOURCE, TAG_BOUND, workpoolComm, &receiveBound.request);
+        MPI_Irecv(receiveBound.boundBuffer, 1, dataManager.getBoundType(), MPI_ANY_SOURCE, TAG_BOUND, workpoolComm, &(receiveBound.request));
     }
-
-    // recv branch
-    loadBalance(callback);
 }
 
 void MPIManager::loadBalance(std::function<void(BranchBoundResult *)> callback)
@@ -172,6 +178,24 @@ void MPIManager::epilogue(std::function<const Branch *()> callback)
     }
 }
 
+void MPIManager::sendBound(BranchBoundResultSolution *bound)
+{
+    int index = 0;
+    MPI_Request sendRequest[workpoolSize - 1];
+    MPI_Status sendStatus[workpoolSize - 1];
+    std::pair<void *, int> pairToSend = dataManager.getBoundBuffer(bound);
+
+    for (int i = 0; i < workpoolSize; i++)
+    {
+        if (i != workpoolRank)
+        {
+            //cout << "send bound to " << i << " val is " << bound->getSolutionResult()  << endl;
+            MPI_Isend(pairToSend.first, pairToSend.second, dataManager.getBoundType(), i, TAG_BOUND, workpoolComm, &sendRequest[index++]);
+        }
+    }
+    MPI_Waitall(workpoolSize - 1, sendRequest, sendStatus);
+}
+
 BranchBoundResultBranch *MPIManager::waitForBranch()
 {
     for (int i = 0; i < workpoolSize; i++)
@@ -222,13 +246,15 @@ BranchBoundResultBranch *MPIManager::terminationProtocol()
 {
     MPI_Status status;
     int isBranchIncoming;
-    if (tokenTermination.hasToken) 
+    if (tokenTermination.hasToken)
     {
-        MPI_Iprobe(MPI_ANY_SOURCE, TAG_BRANCH, workpoolComm, &isBranchIncoming, &status); //there are send to us
+        MPI_Iprobe(MPI_ANY_SOURCE, TAG_BRANCH, workpoolComm, &isBranchIncoming, &status); // there are send to us
         if (isBranchIncoming)
         {
             return returnBranchFromStatus(status);
-        } else {
+        }
+        else
+        {
             if (workpoolRank == 0 && tokenTermination.nodeColor == nodeWhite && tokenTermination.tokenColor == tokenWhite)
                 throw TERMINATED;
             sendToken(tokenTermination.tokenColor);
@@ -283,7 +309,7 @@ void MPIManager::sendToken(eTokenColor sendWithThisColor)
         return;
     tokenTermination.tokenColor = workpoolRank == 0 ? tokenWhite : sendWithThisColor;
     int rankToSend = (workpoolRank + 1) % workpoolSize;
-    //cout << "send token to " << rankToSend << endl;
+    // cout << "send token to " << rankToSend << endl;
     if (tokenTermination.nodeColor == nodeWhite)
         MPI_Send(&tokenTermination.tokenColor, 1, MPI_INT, rankToSend, TAG_TOKEN, workpoolComm);
     else

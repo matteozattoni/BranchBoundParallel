@@ -14,7 +14,7 @@ public:
         out << *memoryManager;
         return out;
     };
-    int getSolutionResult() override;
+    int getSolutionResult() const override;
     void * operator new(size_t size);
     void * operator new(size_t size, void* ptr);
     void operator delete(void * p);

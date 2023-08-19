@@ -35,6 +35,7 @@ public:
     virtual BranchBoundProblem* getRemoteProblem(void* problemType, std::pair<void*,int> problemElements) =0;
 
     // BOUND
+    virtual std::pair<void*,int> getBoundBuffer(const BranchBoundResultSolution* solution)=0;
     virtual void* getEmptybBoundBuff()=0;
     virtual BranchBoundResultSolution* getSolutionFromBound(void* buff)=0;
     

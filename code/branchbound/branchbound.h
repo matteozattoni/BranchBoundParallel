@@ -31,6 +31,7 @@ public:
     const Branch* getTaskFromQueue();
     BranchBound(MPIManager*, BranchBoundAlgorithm*);
     void setBound(int bound);
+    void sendBound(BranchBoundResultSolution* boundToSend);
     friend std::ostream& operator<<(std::ostream& out, const BranchBound& data);
     ~BranchBound();
 };

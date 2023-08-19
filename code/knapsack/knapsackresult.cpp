@@ -19,7 +19,7 @@ void KnapsackResultSolution::operator delete(void* ptr) {
 
 KnapsackResultSolution::~KnapsackResultSolution() {}
 
-int KnapsackResultSolution::getSolutionResult() {
+int KnapsackResultSolution::getSolutionResult() const {
     return profitSolution;
 }
 
