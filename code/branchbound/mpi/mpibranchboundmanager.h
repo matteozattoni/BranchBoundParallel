@@ -8,8 +8,6 @@
 #include "workpoolmanager.h"
 #include "masterpoolmanager.h"
 
-#define MASTER_RANK 0
-
 class MPIBranchBoundManager: public MPIManager
 {
 private:
