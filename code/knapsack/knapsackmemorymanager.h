@@ -23,14 +23,6 @@
 #define MEDIUM_DATASET2 "datasets/knapPI_1_200_1000_1" // opt 11238
 #define LARGE_DATASET "datasets/knapPI_1_10000_1000_1" // optimus is 563647
 
-
-class KnapsackMemoryRecap {
-public:
-    
-
-};
-
-
 class KnapsackMemoryManager: public MPIDataManager
 {
 private:
