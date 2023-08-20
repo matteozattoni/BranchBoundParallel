@@ -16,7 +16,7 @@
 #define SMALL_DATASET8 "datasets/small/f9_l-d_kp_5_80"       // opt 130
 #define SMALL_DATASET9 "datasets/small/f10_l-d_kp_20_879"       // opt 1025
 
-#define FILEPATH SMALL_DATASET7
+#define FILEPATH SMALL_DATASET2
 
 
 #define MEDIUM_DATASET "datasets/knapPI_1_100_1000_1" // opt 9147

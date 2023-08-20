@@ -61,7 +61,7 @@ void BranchBound::start()
                     }
                     delete resultBranch;
                 }
-                catch (const MPIGlobalTerminationException& e)
+                catch (const MPIBranchBoundTerminationException& e)
                 {
                         if (BranchBound::rank == 0)
                             throw e;

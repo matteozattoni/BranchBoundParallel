@@ -4,13 +4,15 @@
 #include <exception>
 #include <string>
 
+#define WORKPOOL_WORKER 2
+
 class MPIGeneralException : public std::exception {
 private:
     const std::string reason;
 public:
     MPIGeneralException(std::string reasonString) : reason(reasonString) {};
     const char * what () const throw () {
-        return "reasMPIGeneralExceptionon.c_str()";
+        return reason.c_str();
     }
 };
 
@@ -56,6 +58,17 @@ public:
     ~MPIGlobalTerminationException() {};
     const char * what () const throw () {
         return "MPIGlobalTerminationException";
+    }
+};
+
+class MPIBranchBoundTerminationException: public std::exception {
+private:
+public:
+double finalSolution;
+MPIBranchBoundTerminationException(double finalSolution) {this->finalSolution = finalSolution;};
+~MPIBranchBoundTerminationException() {};
+const char * what () const throw () {
+        return "MPIBranchBoundTerminationException";
     }
 };
 

@@ -257,9 +257,9 @@ int main()
         delete mpiManger;
         return 1;
     }
-    catch (MPIGlobalTerminationException &e)
-    {
-        cout << "Final solution is " << branchBound->bound << endl;
+    catch (MPIBranchBoundTerminationException &e)
+    {   
+        cout << "Final solution is " << e.finalSolution << endl;
         delete branchBound;
         delete knapsack;
         delete man;

@@ -1,9 +1,11 @@
 #include "workpoolmanager.h"
 
+#include <iostream>
+
 WorkpoolManager::WorkpoolManager(MPIDataManager &manager): MPIManager(manager)
 {
     int worldRank;
-    MPI_Comm_size(MPI_COMM_WORLD, &worldRank);
+    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
     const int myworkpool = worldRank / WORKPOOL_WORKER;
     MPI_Comm_split(MPI_COMM_WORLD, myworkpool, worldRank, &workpoolComm);
     MPI_Comm_size(workpoolComm, &workpoolSize);
@@ -29,8 +31,11 @@ BranchBoundProblem *WorkpoolManager::getBranchProblem() {
     throw MPIUnimplementedException("Workpool getBranchProblem()");
 }
 
-BranchBoundResultBranch *WorkpoolManager::waitForBranch()
+BranchBoundResultBranch *WorkpoolManager::getBranch()
 {
+    if (workpoolSize < 2)
+        throw MPILocalTerminationException();
+    
     for (int i = 0; i < workpoolSize; i++)
     { // receive already commited (see if completed)
         if (i != workpoolRank && receiveBranch[i].ready == true)
@@ -67,13 +72,95 @@ BranchBoundResultBranch *WorkpoolManager::waitForBranch()
         return branch;
     }
     else
-    { // all receive are not commited so i'll wait the first message from other (termination)
-        return waitForBranchOrTerminate();
+    { // all receive are not commited (and not send incoming) so i'll wait the first message from other (termination)
+        throw MPILocalTerminationException();
     }
+}
+
+BranchBoundResultBranch* WorkpoolManager::waitForBranch() {
+    if (workpoolSize < 2)
+        throw MPIGlobalTerminationException();
+
+    MPI_Status status;
+    int isBranchIncoming;
+    if (tokenTermination.hasToken)
+    {
+        MPI_Iprobe(MPI_ANY_SOURCE, TAG_BRANCH, workpoolComm, &isBranchIncoming, &status); // there are send to us
+        if (isBranchIncoming)
+        {
+            return returnBranchFromStatus(status);
+        }
+        else
+        {
+            if (workpoolRank == 0 && tokenTermination.nodeColor == nodeWhite && tokenTermination.tokenColor == tokenWhite)
+                throw MPIGlobalTerminationException();
+            sendToken();
+            return waitForBranch();
+        }
+    }
+    MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, workpoolComm, &status);
+    switch (status.MPI_TAG)
+    {
+    case TAG_BRANCH: {
+        return returnBranchFromStatus(status);
+        break;
+    }
+    case TAG_TOKEN: {
+        MPI_Status branchStatus;
+        MPI_Iprobe(MPI_ANY_SOURCE, TAG_BRANCH, workpoolComm, &isBranchIncoming, &branchStatus);
+        if (isBranchIncoming)
+        { // there is some branch
+            return returnBranchFromStatus(branchStatus);
+        }
+        else
+        { // nothing incoming we take the token
+            MPI_Recv(&tokenTermination.tokenColor, 1, MPI_INT, status.MPI_SOURCE, status.MPI_TAG, workpoolComm, MPI_STATUS_IGNORE);
+            tokenTermination.hasToken = true;
+            if (workpoolRank == 0 && tokenTermination.tokenColor == tokenWhite)
+            {                                          // global termination
+                for (int i = 1; i < workpoolSize; i++) // ignore the first root
+                {
+                    int termination;
+                    MPI_Send(&termination, 1, MPI_INT, i, TAG_TERMINATION, workpoolComm);
+                }
+                throw MPIGlobalTerminationException();
+            }
+            else
+            {
+                sendToken();
+                return waitForBranch();
+            }
+        }
+        break;
+    }
+    case TAG_TERMINATION: {
+        int termination;
+        MPI_Recv(&termination, 1, MPI_INT, 0, TAG_TERMINATION, workpoolComm, MPI_STATUS_IGNORE);
+        throw MPIGlobalTerminationException();
+        break;
+    }
+    case TAG_BOUND: {
+        void *buffer = dataManager.getEmptybBoundBuff();
+        MPI_Recv(buffer, 1, dataManager.getBoundType(), status.MPI_SOURCE, status.MPI_TAG, workpoolComm, MPI_STATUS_IGNORE);
+        BranchBoundResultSolution *result = dataManager.getSolutionFromBound(buffer);
+        this->bound = std::max(this->bound, (double) result->getSolutionResult());
+        MPIMessage* message = new MPIMessage(buffer, 1, TAG_BOUND);
+        listOfMessage.push_back(message);
+        break;
+    }
+    default: {
+        throw MPIGeneralException("WorkpoolManager::waitForBranch - Unknown tag: " + status.MPI_TAG);
+        break;
+    }
+    }
+    throw MPIGeneralException("WorkpoolManager::waitForBranch - the last code line should'nt be reach");
 }
 
 void WorkpoolManager::sendBound(BranchBoundResultSolution *bound)
 {
+    if (workpoolSize < 2)
+        return;
+    this->bound = std::max(this->bound, (double) bound->getSolutionResult());
     int index = 0;
     MPI_Request sendRequest[workpoolSize - 1];
     MPI_Status sendStatus[workpoolSize - 1];
@@ -115,7 +202,20 @@ void WorkpoolManager::loadBalance(std::function<void(BranchBoundResult *)> callb
 
 void WorkpoolManager::prologue(std::function<void(BranchBoundResult *)> callback)
 {
-    
+    if (workpoolSize < 2)
+        return;
+
+    while (!listOfMessage.empty()) {
+        MPIMessage *message = listOfMessage.back();
+        if (message->tag == TAG_BOUND) {
+            BranchBoundResultSolution *result = dataManager.getSolutionFromBound(message->buffer);
+            callback(result);
+            listOfMessage.pop_back();
+            delete message;
+        }else {
+            throw MPIUnimplementedException("MasterpoolManager::prologue: listOfMessage tag unhandled");
+        }
+    }
     int boundFlag;
     MPI_Status status;
 
@@ -128,6 +228,8 @@ void WorkpoolManager::prologue(std::function<void(BranchBoundResult *)> callback
 
 void WorkpoolManager::epilogue(std::function<const Branch *()> callback)
 {
+    if (workpoolSize < 2)
+        return;
     for (int i = 0; i < workpoolSize; i++)
     {
         MPI_Status status;
@@ -175,65 +277,8 @@ void WorkpoolManager::epilogue(std::function<const Branch *()> callback)
     }
 }
 
-
-BranchBoundResultBranch* WorkpoolManager::waitForBranchOrTerminate() {
-    MPI_Status status;
-    int isBranchIncoming;
-    if (tokenTermination.hasToken)
-    {
-        MPI_Iprobe(MPI_ANY_SOURCE, TAG_BRANCH, workpoolComm, &isBranchIncoming, &status); // there are send to us
-        if (isBranchIncoming)
-        {
-            return returnBranchFromStatus(status);
-        }
-        else
-        {
-            if (workpoolRank == 0 && tokenTermination.nodeColor == nodeWhite && tokenTermination.tokenColor == tokenWhite)
-                throw MPIWorkpoolTerminationException();
-            sendToken();
-            return waitForBranch();
-        }
-    }
-    MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, workpoolComm, &status);
-    if (status.MPI_TAG == TAG_BRANCH)
-    {
-        return returnBranchFromStatus(status);
-    }
-    else if (status.MPI_TAG == TAG_TOKEN)
-    {
-        MPI_Status branchStatus;
-        MPI_Iprobe(MPI_ANY_SOURCE, TAG_BRANCH, workpoolComm, &isBranchIncoming, &branchStatus);
-        if (isBranchIncoming)
-        { // there is some branch
-            return returnBranchFromStatus(branchStatus);
-        }
-        else
-        { // nothing incoming we take the token
-            MPI_Recv(&tokenTermination.tokenColor, 1, MPI_INT, status.MPI_SOURCE, status.MPI_TAG, workpoolComm, MPI_STATUS_IGNORE);
-            tokenTermination.hasToken = true;
-            if (workpoolRank == 0 && tokenTermination.tokenColor == tokenWhite)
-            {                                          // global termination
-                for (int i = 1; i < workpoolSize; i++) // ignore the first root
-                {
-                    int termination;
-                    MPI_Send(&termination, 1, MPI_INT, i, TAG_TERMINATION, workpoolComm);
-                }
-                throw MPIWorkpoolTerminationException();
-            }
-            else
-            {
-                sendToken();
-                return waitForBranch();
-            }
-        }
-    }
-    else if (status.MPI_TAG == TAG_TERMINATION)
-    {
-        int termination;
-        MPI_Recv(&termination, 1, MPI_INT, 0, TAG_TERMINATION, workpoolComm, MPI_STATUS_IGNORE);
-        throw MPIWorkpoolTerminationException();
-    }
-    throw 55;
+double WorkpoolManager::getBound() {
+    return bound;
 }
 
 BranchBoundResultBranch *WorkpoolManager::returnBranchFromStatus(MPI_Status status)
@@ -271,6 +316,7 @@ void WorkpoolManager::receiveBoundMessage(std::function<void(BranchBoundResult *
     if (isBoundMessageArrived)
     {
         BranchBoundResultSolution *sol = dataManager.getSolutionFromBound(receiveBound.boundBuffer);
+        this->bound = std::max(this->bound, (double) sol->getSolutionResult());
         callback(sol);
         receiveBound.boundBuffer = nullptr;
         // there are more?
@@ -283,11 +329,30 @@ void WorkpoolManager::receiveBoundMessage(std::function<void(BranchBoundResult *
                 receiveBound.boundBuffer = dataManager.getEmptybBoundBuff();
                 MPI_Recv(receiveBound.boundBuffer, 1, dataManager.getBoundType(), status.MPI_SOURCE, status.MPI_TAG, workpoolComm, &status);
                 BranchBoundResultSolution *sol = dataManager.getSolutionFromBound(receiveBound.boundBuffer);
+                this->bound = std::max(this->bound, (double) sol->getSolutionResult());
                 callback(sol);
                 receiveBound.boundBuffer = nullptr;
             }
         }
         receiveBound.boundBuffer = dataManager.getEmptybBoundBuff();
         MPI_Irecv(receiveBound.boundBuffer, 1, dataManager.getBoundType(), MPI_ANY_SOURCE, TAG_BOUND, workpoolComm, &(receiveBound.request));
+    }
+}
+
+bool WorkpoolManager::isCommEnabled() {
+    return workpoolComm != MPI_COMM_NULL; // always true
+}
+
+void WorkpoolManager::broadcastTerminationWithValue(bool value) {
+    if (workpoolSize < 2)
+        return;
+    bool val = value;
+    if (workpoolRank == 0) {
+        MPI_Bcast(&val, 1, MPI_C_BOOL, 0, workpoolComm);
+    } else {
+        MPI_Bcast(&val, 1, MPI_C_BOOL, 0, workpoolComm);
+        if (val == true) {
+            throw MPIGlobalTerminationException();
+        }
     }
 }

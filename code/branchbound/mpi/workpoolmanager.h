@@ -2,12 +2,12 @@
 #define WORKPOOLMANAGER_H
 
 #include "mpimanager.h"
-
-#define WORKPOOL_WORKER 4
+#include "mpimessage.h"
 
 class WorkpoolManager: public MPIManager
 {
 private:
+    double bound=0.0;
     MPI_Comm workpoolComm;
     int workpoolRank;
     int workpoolSize;
@@ -35,19 +35,23 @@ private:
         void* boundBuffer;
         MPI_Request request;
     } receiveBound;
-    BranchBoundResultBranch* waitForBranchOrTerminate();
     BranchBoundResultBranch* returnBranchFromStatus(MPI_Status status);
     void receiveBoundMessage(std::function<void(BranchBoundResult *)>);
     void sendToken();
     void loadBalance(std::function<void(BranchBoundResult*)>);
+    std::vector<MPIMessage*> listOfMessage;
     /* data */
 public:
     BranchBoundProblem* getBranchProblem() override;
     const Branch* getRootBranch() override;
     BranchBoundResultBranch* waitForBranch() override;
+    BranchBoundResultBranch* getBranch() override;
     void prologue(std::function<void(BranchBoundResult*)>) override;
     void epilogue(std::function<const Branch*()>) override;
     void sendBound(BranchBoundResultSolution* bound) override;
+    bool isCommEnabled() override;
+    void broadcastTerminationWithValue(bool value) override;
+    double getBound() override;
     WorkpoolManager(MPIDataManager &manager);
     ~WorkpoolManager();
 };
