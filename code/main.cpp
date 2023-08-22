@@ -5,6 +5,7 @@
 #include "knapsack/knapsackmemorymanager.h"
 #include "knapsack/knapsack.h"
 #include "branchbound/branchbound.h"
+#include "branchbound/sequential/seq_branchbound.h"
 #include "branchbound/mpi/mpibranchboundmanager.h"
 #include "mpi.h"
 
@@ -224,13 +225,37 @@ void test()
     MPI_Finalize();
 }
 
-int main()
-{
+void runKnapsackSequential() {
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::seconds sec;
     typedef std::chrono::duration<float> fsec;
-    // test3();
-    // return 0;
+
+    auto t0 = Time::now();
+    KnapsackMemoryManager *manSeq = new KnapsackMemoryManager();
+
+    Knapsack *knapsackSeq = new Knapsack();
+    BranchBoundProblem *problemSeq = manSeq->getLocalProblem();
+    Branch *rootBranch = manSeq->getRootBranch();
+    SequentialBranchBound seqBranchBound(knapsackSeq);
+
+    cout << "Start Branch & Bound Serial" << endl;
+    seqBranchBound.start(problemSeq, rootBranch);
+    cout << "Final solution is " << seqBranchBound.getBound() << endl;
+    delete manSeq;
+    delete knapsackSeq;
+    delete problemSeq;
+    
+    auto t1 = Time::now();
+    fsec fs = t1 - t0;
+    sec d = std::chrono::duration_cast<sec>(fs);
+    cout << "Total duration: " << d.count() << "s" << endl;
+}
+
+int runKnaspackParallel() {
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::seconds sec;
+    typedef std::chrono::duration<float> fsec;
+
     auto t0 = Time::now();
     Knapsack *knapsack = new Knapsack();
     KnapsackMemoryManager *man = new KnapsackMemoryManager();
@@ -242,7 +267,7 @@ int main()
     BranchBound *branchBound = new BranchBound(mpiManger, knapsack);
     try
     {
-        cout << "Start Branch & Bound " << endl;
+        cout << "Start Branch & Bound Parallel" << endl;
         branchBound->start();
         delete branchBound;
         delete knapsack;
@@ -278,4 +303,18 @@ int main()
         // std::cerr << e << '\n';
         return 1;
     }
+}
+
+int main()
+{
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::seconds sec;
+    typedef std::chrono::duration<float> fsec;
+    
+    // test3();
+    //runKnapsackSequential();
+
+    return runKnaspackParallel();
+    return 0;
+    
 }

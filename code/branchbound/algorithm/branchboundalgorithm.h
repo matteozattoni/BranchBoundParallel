@@ -5,6 +5,8 @@
 #include "branchboundbranch.h"
 #include "branchboundproblem.h"
 
+#include <ostream>
+
 
 class BranchBoundAlgorithm
 {
