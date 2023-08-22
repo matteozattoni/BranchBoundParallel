@@ -26,7 +26,7 @@ void BranchBound::start()
 
     if (firstExecution)
     {
-        const Branch *rootBranch = mpiManager->getRootBranch();
+        Branch *rootBranch = mpiManager->getRootBranch();
         if (rootBranch != nullptr)
             algorithm->setBranch(rootBranch);
         firstExecution = false;
@@ -37,9 +37,10 @@ void BranchBound::start()
         // get bound from mpi if any
         while (!algorithm->hasCurrentBranch())
         { // check if algorith has current task, if dont wait for one or extract it from list
-            const Branch *branch = getTaskFromQueue();
+            Branch *branch = getTaskFromQueue();
             if (branch != nullptr)
             { // fetched from queue
+                
                 algorithm->setBranch(branch);
                 // now safe to delete (has been copied)
                 delete branch;
@@ -48,12 +49,12 @@ void BranchBound::start()
             {
                 // get task from mpi: wait
                 try
-                {
+                {        
                     BranchBoundResultBranch *resultBranch = mpiManager->waitForBranch();
-                    const Branch *array = resultBranch->getArrayBranch();
+                    Branch *array = resultBranch->getArrayBranch();
                     for (int i = 0; i < resultBranch->getNumberBranch(); i++)
                     {
-                        const Branch *branch = &array[i];
+                        Branch *branch = &array[i];
                         if (i == 0)
                             algorithm->setBranch(branch);
                         else
@@ -63,10 +64,18 @@ void BranchBound::start()
                 }
                 catch (const MPIBranchBoundTerminationException& e)
                 {
+                    if (e.finalSolution > bound) {
                         if (BranchBound::rank == 0)
                             throw e;
                         else
                             throw 0;
+                    } else {
+                        if (BranchBound::rank == 0)
+                            throw MPIBranchBoundTerminationException(bound);
+                        else
+                            throw 0;
+                    }
+                        
                     
                     throw e;
                 }
@@ -76,7 +85,8 @@ void BranchBound::start()
         mpiManager->prologue(
             [this](BranchBoundResult *result)
             { 
-                BranchBoundResultSolution *resultSolution = dynamic_cast<BranchBoundResultSolution *>(result);
+                this->newBranchBoundResult(result);
+                /* BranchBoundResultSolution *resultSolution = dynamic_cast<BranchBoundResultSolution *>(result);
                 if (resultSolution != nullptr) {
                     int solution = resultSolution->getSolutionResult();
                     // std::cout << "(from rank " << rank << ") sol is " << solution << std::endl;
@@ -86,7 +96,7 @@ void BranchBound::start()
                         }
                         delete resultSolution;
                 } else
-                    this->newBranchBoundResult(result); });
+                    this->newBranchBoundResult(result);  */});
 
         try
         {
@@ -113,7 +123,7 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
     {
     case Solution:
     {
-        BranchBoundResultSolution *resultSolution = dynamic_cast<BranchBoundResultSolution *>(result);
+        BranchBoundResultSolution *resultSolution = static_cast<BranchBoundResultSolution *>(result);
         int solution = resultSolution->getSolutionResult();
         // std::cout << "(from rank " << rank << ") sol is " << solution << std::endl;
         if (algorithm->isBetterBound(solution))
@@ -127,11 +137,11 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
     }
     case ResultBranch:
     {
-        BranchBoundResultBranch *resultBranch = dynamic_cast<BranchBoundResultBranch *>(result);
-        const Branch *array = resultBranch->getArrayBranch();
+        BranchBoundResultBranch *resultBranch = static_cast<BranchBoundResultBranch *>(result);
+        Branch *array = resultBranch->getArrayBranch();
         for (int i = 0; i < resultBranch->getNumberBranch(); i++)
         {
-            const Branch *branch = &array[i];
+            Branch *branch = &array[i];
 
             addBranchToQueue(branch);
         }
@@ -140,7 +150,7 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
     }
     case Closed:
     {
-        BranchBoundResultClosed *resultClose = dynamic_cast<BranchBoundResultClosed *>(result);
+        BranchBoundResultClosed *resultClose = static_cast<BranchBoundResultClosed *>(result);
         delete resultClose;
         break;
     }
@@ -151,9 +161,9 @@ void BranchBound::sendBound(BranchBoundResultSolution* solution) {
     mpiManager->sendBound(solution);
 }
 
-const Branch *BranchBound::getTaskFromQueue()
+Branch *BranchBound::getTaskFromQueue()
 {
-    const Branch *branch = nullptr;
+    Branch *branch = nullptr;
     if (list.size() > 0)
     {
         branch = list.front();
@@ -162,13 +172,18 @@ const Branch *BranchBound::getTaskFromQueue()
     return branch;
 }
 
-void BranchBound::addBranchToQueue(const Branch *branch)
+void BranchBound::addBranchToQueue(Branch *branch)
 {
     list.push_front(branch);
 }
 
 void BranchBound::setBound(int bound)
 {
+    if (bound == 9147) {
+        std::cout << "("<< rank << ") bound 9147 has been set!!! " << std::endl;
+    }
+    std::cout << "(" << rank <<  ") new bound " << bound << std::endl;
+    
     this->bound = bound;
     this->algorithm->setBound(bound);
 }

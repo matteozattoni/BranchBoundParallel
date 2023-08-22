@@ -6,7 +6,7 @@
 
 class KnapsackResultSolution: public BranchBoundResultSolution {
 private:
-    const int profitSolution;
+    int profitSolution;
     /* data */
 public:
     static AllocatorFixedMemoryPool<KnapsackResultSolution> *memoryManager;

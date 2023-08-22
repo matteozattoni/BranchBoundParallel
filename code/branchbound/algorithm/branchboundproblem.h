@@ -16,12 +16,12 @@ public:
 class BranchBoundProblem
 {
 protected:
-    const int problemElementsNumber;
-    const BranchBoundProblemElement * problemElements;
+    int problemElementsNumber;
+    BranchBoundProblemElement * problemElements;
     /* data */
 public:
     int getProblemElementsNumber() const {return problemElementsNumber;}
-    const BranchBoundProblemElement* getProblemElements() const { return problemElements;}
+    BranchBoundProblemElement* getProblemElements() const { return problemElements;}
     BranchBoundProblem(BranchBoundProblemElement* el, int n) : problemElementsNumber(n), problemElements(el) {}
     virtual ~BranchBoundProblem() {}
 };

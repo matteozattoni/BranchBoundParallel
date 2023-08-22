@@ -9,7 +9,7 @@
 class KnapsackSolution
 {
 private:
-    const KnapsackProblem* problem;
+    KnapsackProblem* problem;
     int numberSolutionElements = 0;
     int solutionTotalWeigth = 0;
     int solutionTotalProfit = 0;
@@ -20,7 +20,7 @@ public:
     void clear();
     KnapsackSolution(KnapsackProblem* problem);
     ~KnapsackSolution();
-    void setElementsFromBranch(const KnapsackBranch* branch);
+    void setElementsFromBranch(KnapsackBranch* branch);
     void addObjectToSolution(int id, bool in_knapsack, int profit, int weigth);
     bool hasObjectId(int id);
     void copySolutionTo(KnapsackBranchElement* buff);

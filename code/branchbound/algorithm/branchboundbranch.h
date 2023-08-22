@@ -5,7 +5,7 @@
 class BranchElement
 {
 protected:
-    const int id;
+    int id;
     /* data */
 public:
     BranchElement(int elementIdentifier): id(elementIdentifier){};
@@ -17,12 +17,14 @@ public:
 class Branch
 {
 protected:
-    const int numberOfElement;
-    const BranchElement* elements;
+    int numberOfElement;
+    BranchElement* elements;
 public:
     int getNumberOfElements() const {return numberOfElement;}
-    const BranchElement* getBranchElements() const {return elements;}
-    Branch(int nElements, BranchElement* el): numberOfElement(nElements), elements(el) {};
+    BranchElement* getBranchElements() const {return elements;}
+    Branch(int nElements, BranchElement* el): numberOfElement(nElements){
+        this->elements = el;
+    };
     virtual ~Branch() {};
 };
 

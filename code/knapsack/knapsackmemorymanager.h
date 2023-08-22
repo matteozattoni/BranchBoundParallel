@@ -16,12 +16,13 @@
 #define SMALL_DATASET8 "datasets/small/f9_l-d_kp_5_80"       // opt 130
 #define SMALL_DATASET9 "datasets/small/f10_l-d_kp_20_879"       // opt 1025
 
-#define FILEPATH SMALL_DATASET2
-
-
-#define MEDIUM_DATASET "datasets/knapPI_1_100_1000_1" // opt 9147
-#define MEDIUM_DATASET2 "datasets/knapPI_1_200_1000_1" // opt 11238
+#define MEDIUM_DATASET1 "datasets/knapPI_1_100_1000_1" // opt 9147
+#define MEDIUM_DATASET2 "datasets/knapPI_2_100_1000_1" // opt 1514
+#define MEDIUM_DATASET3 "datasets/knapPI_1_200_1000_1" // opt 11238
 #define LARGE_DATASET "datasets/knapPI_1_10000_1000_1" // optimus is 563647
+
+
+#define FILEPATH MEDIUM_DATASET1
 
 class KnapsackMemoryManager: public MPIDataManager
 {
@@ -44,7 +45,7 @@ KnapsackMemoryManager(/* args */);
     void testBoundMemory();
     void test2();
 
-    const Branch* getRootBranch() override;
+    Branch* getRootBranch() override;
 
     // MPIDataManager methods
     MPI_Datatype getProblemType() override;

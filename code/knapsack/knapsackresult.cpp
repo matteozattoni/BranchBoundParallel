@@ -2,7 +2,7 @@
 
 AllocatorFixedMemoryPool<KnapsackResultSolution>* KnapsackResultSolution::memoryManager = new AllocatorFixedMemoryPool<KnapsackResultSolution>();
 
-KnapsackResultSolution::KnapsackResultSolution(int profit): BranchBoundResultSolution(), profitSolution(profit) {}
+KnapsackResultSolution::KnapsackResultSolution(int profit): BranchBoundResultSolution() { this->profitSolution = profit;}
 
 void* KnapsackResultSolution::operator new(size_t size) {
     void* ptr = KnapsackResultSolution::memoryManager->allocate();

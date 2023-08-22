@@ -1,9 +1,11 @@
 #include "knapsackbranch.h"
 #include <string.h>
 
+#include <iostream>
+
 AllocatorFixedMemoryPool<KnapsackBranch>* KnapsackBranch::branchMemoryManager = new AllocatorFixedMemoryPool<KnapsackBranch>();
 AllocatorArrayMemoryPool<KnapsackBranchElement>* KnapsackBranch::elementsMemoryManager = new AllocatorArrayMemoryPool<KnapsackBranchElement>(0.4, 50);
-const KnapsackBranch& KnapsackBranch::rootBranch = KnapsackBranch(0, 0, nullptr);
+const KnapsackBranch& KnapsackBranch::rootBranch = KnapsackBranch(0, nullptr);
 
 std::ostream& KnapsackBranch::printKnapsackBranchMemory(std::ostream& out) {
     out << *KnapsackBranch::branchMemoryManager;
@@ -16,17 +18,29 @@ KnapsackBranchElement::KnapsackBranchElement(int id, bool isInsideKnapsack): Bra
 
 KnapsackBranchElement::~KnapsackBranchElement() {}
 
-KnapsackBranch::KnapsackBranch(int numberElements, BranchElement* buffer): Branch(numberElements, buffer), bufferDimension(numberElements) {
+KnapsackBranch::KnapsackBranch(int numberElements, BranchElement* buffer): Branch(numberElements, buffer) {
     
 }
 
-KnapsackBranch::KnapsackBranch(int dimBuff, int numberElements, BranchElement* elementToCopy): Branch(numberElements, elementsMemoryManager->allocate(dimBuff)), bufferDimension(dimBuff)
+KnapsackBranch::KnapsackBranch(int dimBuff, int numberElements, BranchElement* elementToCopy): Branch(numberElements, elementsMemoryManager->allocate(numberElements))
 {
     if(dimBuff<numberElements) {
         throw OverflowArray;
     }
-    KnapsackBranchElement* newBuffer = (KnapsackBranchElement*) this->elements;
-    memcpy(newBuffer, elementToCopy, sizeof(KnapsackBranchElement)*numberElements);
+    
+    KnapsackBranchElement* newBuffer =  static_cast<KnapsackBranchElement*>(this->elements);
+    KnapsackBranchElement* fromElement = dynamic_cast<KnapsackBranchElement*>(elementToCopy);
+
+    if (fromElement == nullptr || newBuffer == nullptr)
+        throw InvalidBranchElementCast;
+
+    for (int i = 0; i < numberElements; i++)
+    {
+        int id = fromElement[i].getElementId();
+        bool inKnap = fromElement[i].isInsideKnapsack();
+        new(&newBuffer[i]) KnapsackBranchElement(id, inKnap);
+    }
+    //memcpy(newBuffer, elementToCopy, sizeof(KnapsackBranchElement)*numberElements);
 }
 
 KnapsackBranch::~KnapsackBranch()
@@ -34,12 +48,12 @@ KnapsackBranch::~KnapsackBranch()
     elementsMemoryManager->deallocate(this->getKnapsackBranchElement());
 }
 
-const KnapsackBranchElement *KnapsackBranch::getKnapsackBranchElement() const
+KnapsackBranchElement *KnapsackBranch::getKnapsackBranchElement() const
 {
     if (this->getNumberOfElements() > 0)
     {
-        const BranchElement *elem = this->getBranchElements();
-        const KnapsackBranchElement *knapsackElements = dynamic_cast<const KnapsackBranchElement *>(elem);
+        BranchElement *elem = this->getBranchElements();
+        KnapsackBranchElement *knapsackElements = static_cast<KnapsackBranchElement *>(elem);
         if (knapsackElements == nullptr)
             throw InvalidBranchElementCast;
         return knapsackElements;

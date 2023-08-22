@@ -16,14 +16,13 @@ private:
     enum eNodeColor {nodeWhite , nodeBlack};
     struct {
         void* branchBuffer;
-        MPI_Request request;
-        bool ready = false;
-        int count;
+        int numElement;
+        MPI_Request request = MPI_REQUEST_NULL;
     } receiveBranch[WORKPOOL_WORKER];
     struct {
-        std::pair<void*,int> sentBufferAndCount;
-        MPI_Request request;
-        bool isSent = false;
+        void* branchBuffer;
+        int numElement;
+        MPI_Request request = MPI_REQUEST_NULL;
     } sentBranch[WORKPOOL_WORKER];
     struct {
         eTokenColor tokenColor = tokenWhite;
@@ -40,10 +39,15 @@ private:
     void sendToken();
     void loadBalance(std::function<void(BranchBoundResult*)>);
     std::vector<MPIMessage*> listOfMessage;
+    BranchBoundResultBranch* getResultFromStatus(MPI_Status status);
+    bool isLocalTerminate();
+    void checkTermination();
     /* data */
 public:
+    long totalSendBranch = 0;
+    long totalRecvBranch = 0;
     BranchBoundProblem* getBranchProblem() override;
-    const Branch* getRootBranch() override;
+    Branch* getRootBranch() override;
     BranchBoundResultBranch* waitForBranch() override;
     BranchBoundResultBranch* getBranch() override;
     void prologue(std::function<void(BranchBoundResult*)>) override;
@@ -52,6 +56,7 @@ public:
     bool isCommEnabled() override;
     void broadcastTerminationWithValue(bool value) override;
     double getBound() override;
+    void terminate() override;
     WorkpoolManager(MPIDataManager &manager);
     ~WorkpoolManager();
 };

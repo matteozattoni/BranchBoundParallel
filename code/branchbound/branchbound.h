@@ -14,21 +14,21 @@ class BranchBound
 {
 private:
     // memory manager?
-    std::list<const Branch*> list; // list of task
+    std::list<Branch*> list; // list of task
     // Algorithm
     BranchBoundAlgorithm* algorithm;
     MPIBranchBoundManager* mpiManager;
-    const int worldRank;
+    int worldRank;
     bool firstExecution = true;
    
-    void addBranchToQueue(const Branch* branch);
+    void addBranchToQueue(Branch* branch);
 public:
     // method to loop
     static int rank;
     int bound;
     void start();
     void newBranchBoundResult(BranchBoundResult* result);
-    const Branch* getTaskFromQueue();
+    Branch* getTaskFromQueue();
     BranchBound(MPIBranchBoundManager*, BranchBoundAlgorithm*);
     void setBound(int bound);
     void sendBound(BranchBoundResultSolution* boundToSend);

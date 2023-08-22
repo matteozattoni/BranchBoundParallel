@@ -2,6 +2,7 @@
 #define MPIGLOBALMANAGER_H
 
 #include "mpimanager.h"
+#include "workpoolmanager.h"
 #include "mpiexceptions.h"
 #include "mpimessage.h"
 #include <vector>
@@ -15,6 +16,7 @@ private:
     int masterpoolSize;
     int masterpoolRank;
     int nextRankToSend;
+    MPIManager *workpoolManager;
     MPI_Comm masterpoolComm;
     enum tagMessage { BRANCH, BRANCH_REQUEST, BOUND, TOKEN, TERMINATION};
     enum eTokenColor {tokenWhite, tokenBlack};
@@ -41,9 +43,14 @@ private:
     std::vector<MPIMessage*> listOfMessage;
     void sendToken();
     BranchBoundResultBranch * returnBranchFromStatus(MPI_Status status);
+    BranchBoundResultBranch* getResultFromStatus(MPI_Status status);
+    bool isLocalTerminate();
+    void checkTermination();
 public:
+    long totalSendBranch = 0;
+    long totalRecvBranch = 0;
     BranchBoundProblem* getBranchProblem() override;
-    const Branch* getRootBranch() override;
+    Branch* getRootBranch() override;
     BranchBoundResultBranch* getBranch() override;
     BranchBoundResultBranch* waitForBranch() override;
     void prologue(std::function<void(BranchBoundResult*)>) override;
@@ -53,6 +60,7 @@ public:
     MasterpoolManager(MPIDataManager &manager);
     void broadcastTerminationWithValue(bool value) override;
     double getBound() override;
+    void terminate() override;
     ~MasterpoolManager();
 };
 

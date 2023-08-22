@@ -40,7 +40,7 @@ KnapsackBranchElement *KnapsackSolution::getElementsSolution()
     return solutionElements;
 }
 
-void KnapsackSolution::setElementsFromBranch(const KnapsackBranch *branch)
+void KnapsackSolution::setElementsFromBranch(KnapsackBranch *branch)
 {
     solutionTotalProfit = 0;
     solutionTotalWeigth = 0;
@@ -49,9 +49,16 @@ void KnapsackSolution::setElementsFromBranch(const KnapsackBranch *branch)
     if (numberSolutionElements == 0)
         return;
 
-    const KnapsackBranchElement *elementsToCopy = (KnapsackBranchElement *)branch->getBranchElements();
+    KnapsackBranchElement *elementsToCopy = (KnapsackBranchElement *)branch->getBranchElements();
 
-    memcpy(solutionElements, elementsToCopy, sizeof(KnapsackBranchElement) * numberSolutionElements);
+    for (int i = 0; i < numberSolutionElements; i++)
+    {
+        int id = elementsToCopy[i].getElementId();
+        bool inKnapsack = elementsToCopy[i].isInsideKnapsack();
+        new(&solutionElements[i]) KnapsackBranchElement(id, inKnapsack);
+    }
+    
+    //memcpy(solutionElements, elementsToCopy, sizeof(KnapsackBranchElement) * numberSolutionElements);
 
     for (int i = 0; i < numberSolutionElements; i++)
     {
@@ -101,7 +108,14 @@ void KnapsackSolution::addObjectToSolution(int id, bool in_knapsack, int profit,
 
 void KnapsackSolution::copySolutionTo(KnapsackBranchElement *buff)
 {
-    memcpy(buff, this->solutionElements, sizeof(KnapsackBranchElement) * this->getSolutionSize());
+    for (int i = 0; i < getSolutionSize(); i++)
+    {
+        int id = solutionElements[i].getElementId();
+        bool inKnapsack = solutionElements[i].isInsideKnapsack();
+        new(&buff[i]) KnapsackBranchElement(id, inKnapsack);
+    }
+    
+    //memcpy(buff, this->solutionElements, sizeof(KnapsackBranchElement) * this->getSolutionSize());
 }
 
 void KnapsackSolution::printSolution()

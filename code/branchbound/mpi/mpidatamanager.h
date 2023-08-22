@@ -27,7 +27,7 @@ public:
     virtual void* getProblemTypeBuffFrom(BranchBoundProblem* problem) = 0;
     virtual std::pair<void*,int> getProblemElementBuffFrom(BranchBoundProblem* problem) =0;
 
-    virtual const Branch* getRootBranch()=0;
+    virtual Branch* getRootBranch() =0;
 
     // slaves
     virtual void* getEmptyProblemTypeBuff() =0;

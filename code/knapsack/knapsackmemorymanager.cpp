@@ -16,8 +16,8 @@ KnapsackMemoryManager::~KnapsackMemoryManager()
 {
 }
 
-const Branch* KnapsackMemoryManager::getRootBranch() {
-    return &KnapsackBranch::rootBranch;
+Branch* KnapsackMemoryManager::getRootBranch() {
+    return new KnapsackBranch(0, nullptr);
 }
 
 // create datatype
@@ -65,8 +65,8 @@ void KnapsackMemoryManager::createBoundDatatype() {
     struct
     {
         void *a;
+        int typeClass;
         int solution;
-        void *c, *b;
 
     } boundStruct;
     int numberOfBlocks = 1;
@@ -138,8 +138,8 @@ void KnapsackMemoryManager::commitDatatypes() {
     struct boundStruct
     {
         void *a;
+        int type;
         int solution;
-        void *c, *b;
 
     };
     MPI_Datatype notResizedDatatype;
@@ -204,7 +204,7 @@ BranchBoundProblem* KnapsackMemoryManager::getRemoteProblem(void* problemType, s
         double profit, weigth;
 
     };
-    int totalNumberOfElements = ((problemStruct*)problemType)->totalNumberOfElements;
+    //int totalNumberOfElements = ((problemStruct*)problemType)->totalNumberOfElements;
     int knapCapacity = ((problemStruct*)problemType)->knapCapacity;
     KnapsackProblemElement* elementsBuffer = (KnapsackProblemElement*) problemElements.first;
     int count = problemElements.second;
@@ -235,8 +235,8 @@ BranchBoundResultSolution* KnapsackMemoryManager::getSolutionFromBound(void* buf
     struct boundStruct
     {
         void *a;
+        int type;
         int solution;
-        void *c, *b;
 
     };
     int solution = ((boundStruct*) buff)->solution;
@@ -330,15 +330,14 @@ void KnapsackMemoryManager::testBoundMemory() {
     // TEST KnapsackBranch Memory Layout
     struct BoundStruct
     {
-        void *a;
+        void* s;
+        int type;
         int solution;
-        void *c, *b;
-
     } boundStruct;
     boundStruct.solution = 21;
     assert(sizeof(boundStruct)==sizeof(KnapsackResultSolution));
     KnapsackResultSolution* kb = (KnapsackResultSolution*)&boundStruct;
-    new(kb) const KnapsackResultSolution(boundStruct.solution);
+    new(kb) KnapsackResultSolution(boundStruct.solution);
     assert(kb->getSolutionResult() == 21);
     KnapsackResultSolution newKb(50);
     int solution = ((BoundStruct*) &newKb)->solution;
@@ -371,7 +370,6 @@ void KnapsackMemoryManager::testBranchMemory() {
     assert(kb[1].isInsideKnapsack() == false);
     struct
     {
-        void* stubVirtual;
         int buffDim;
         void* elem;
         int num;

@@ -2,17 +2,30 @@
 #define KNAPSACKCLASS
 
 #include <ostream>
+#include <exception>
 
 #include "../branchbound/algorithm/branchboundalgorithm.h"
 #include "../branchbound/algorithm/branchboundproblem.h"
 #include "../branchbound/algorithm/branchboundresult.h"
 #include "../branchbound/algorithm/branchboundexception.h"
+#include "../branchbound/branchbound.h"
 #include "knapsacksolution.h"
 #include "knapsackproblem.h"
 #include "knapsackresult.h"
 
 
 using namespace std;
+
+class KnapsackException: public std::exception {
+private:
+    const std::string reason;
+public:
+    KnapsackException(std::string stringReason): reason(stringReason) {};
+    ~KnapsackException() {}
+    const char * what () const throw () {
+        return reason.c_str();
+    }
+};
 
 class KnapsackSubProblem
 {
@@ -41,8 +54,8 @@ private:
 
     void setKnapsackProblem(KnapsackProblem*);
     KnapsackProblem* getKnapsackProblem();
-    const KnapsackSubProblem* computeSubSolution(const KnapsackBranchElement* elem, int numb) const;
-    const KnapsackSubProblem* computeSubSolution() const;
+    KnapsackSubProblem* computeSubSolution(KnapsackBranchElement* elem, int numb) const;
+    KnapsackSubProblem* computeSubSolution() const;
 public:
     Knapsack(/* manager?*/);
     ~Knapsack();
@@ -51,7 +64,7 @@ public:
     void setBound(int bound) override;
     void setProblem(BranchBoundProblem*) override;
     void setProblemWithRootBranch(BranchBoundProblem*) override;
-    void setBranch(const Branch*) override;
+    void setBranch(Branch*) override;
     BranchBoundResult* computeTaskIteration() override;
     bool hasCurrentBranch() override;
     std::ostream& printAlgorithm(std::ostream& out) override;

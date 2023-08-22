@@ -10,20 +10,6 @@
 
 using namespace std;
 
-#define SMALL_DATASET1 "datasets/small/f1_l-d_kp_10_269"   // opt 295
-#define SMALL_DATASET2 "datasets/small/f2_l-d_kp_20_878"   // opt 1024
-#define SMALL_DATASET3 "datasets/small/f3_l-d_kp_4_20"     // opt 35
-#define SMALL_DATASET4 "datasets/small/f4_l-d_kp_4_11"     // opt 23
-#define SMALL_DATASET5 "datasets/small/f6_l-d_kp_10_60"    // opt 52
-#define SMALL_DATASET6 "datasets/small/f7_l-d_kp_7_50"     // opt 107
-#define SMALL_DATASET7 "datasets/small/f8_l-d_kp_23_10000" // opt 9767
-#define SMALL_DATASET8 "datasets/small/f9_l-d_kp_5_80"     // opt 130
-#define SMALL_DATASET9 "datasets/small/f10_l-d_kp_20_879"  // opt 1025
-
-#define MEDIUM_DATASET "datasets/knapPI_1_100_1000_1"  // opt 9147
-#define MEDIUM_DATASET2 "datasets/knapPI_1_200_1000_1" // opt 11238
-#define LARGE_DATASET "datasets/knapPI_1_10000_1000_1" // optimus is 563647
-
 struct Data
 {
     void *ptr;
@@ -65,10 +51,12 @@ void test3()
     // offsets[1] = offsetof(Data2, value2);
 
     // Definisci un tipo derivato personalizzato che inizia dal doppio offset
+    int numElementBlock[1] = {1};
+    MPI_Datatype datatypes[1] = {MPI_INT};
     MPI_Type_create_struct(1,                            // Numero di blocchi
-                           new int[1]{1},                // Numero di elementi in ogni blocco
+                           numElementBlock,                // Numero di elementi in ogni blocco
                            offsets,                      // Offset
-                           new MPI_Datatype[1]{MPI_INT}, // Tipi di dati in ogni blocco
+                           datatypes, // Tipi di dati in ogni blocco
                            &mpi_data_type);              // Tipo derivato risultante
 
     MPI_Aint lb, extent;
@@ -128,10 +116,12 @@ void test2()
     // offsets[1] = offsetof(Data2, value2);
 
     // Definisci un tipo derivato personalizzato che inizia dal doppio offset
+    int numElementsBlock[2] = {1,1};
+    MPI_Datatype datatypes[2] = {MPI_INT, MPI_C_BOOL};
     MPI_Type_create_struct(2,                                        // Numero di blocchi
-                           new int[2]{1, 1},                         // Numero di elementi in ogni blocco
+                           numElementsBlock,                         // Numero di elementi in ogni blocco
                            offsets,                                  // Offset
-                           new MPI_Datatype[2]{MPI_INT, MPI_C_BOOL}, // Tipi di dati in ogni blocco
+                           datatypes, // Tipi di dati in ogni blocco
                            &mpi_data_type);                          // Tipo derivato risultante
 
     MPI_Aint lb, extent;
@@ -187,10 +177,12 @@ void test()
     offsets[1] = offsetof(Data, value2);
 
     // Definisci un tipo derivato personalizzato che inizia dal doppio offset
+    int numElementsBlock[2] = {1,1};
+    MPI_Datatype datatypes[2] = {MPI_DOUBLE, MPI_DOUBLE};
     MPI_Type_create_struct(2,                                           // Numero di blocchi
-                           new int[2]{1, 1},                            // Numero di elementi in ogni blocco
+                           numElementsBlock,                            // Numero di elementi in ogni blocco
                            offsets,                                     // Offset
-                           new MPI_Datatype[2]{MPI_DOUBLE, MPI_DOUBLE}, // Tipi di dati in ogni blocco
+                           datatypes, // Tipi di dati in ogni blocco
                            &mpi_data_type);                             // Tipo derivato risultante
 
     MPI_Aint lb, extent;
@@ -237,7 +229,6 @@ int main()
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::seconds sec;
     typedef std::chrono::duration<float> fsec;
-
     // test3();
     // return 0;
     auto t0 = Time::now();
@@ -247,9 +238,11 @@ int main()
     man->testBranchMemory();
     man->testBoundMemory();
     MPIBranchBoundManager *mpiManger = new MPIBranchBoundManager(*man);
+ 
     BranchBound *branchBound = new BranchBound(mpiManger, knapsack);
     try
     {
+        cout << "Start Branch & Bound " << endl;
         branchBound->start();
         delete branchBound;
         delete knapsack;

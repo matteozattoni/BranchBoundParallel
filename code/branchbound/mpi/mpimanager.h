@@ -15,7 +15,7 @@ protected:
     
 public:
     virtual BranchBoundProblem* getBranchProblem() =0;
-    virtual const Branch* getRootBranch() =0;
+    virtual Branch* getRootBranch() =0;
     /**
      * returns a BranchBoundResultBranch or throw MPILocalTerminationException
     */
@@ -27,6 +27,7 @@ public:
     virtual bool isCommEnabled() =0;
     virtual void broadcastTerminationWithValue(bool value) =0;
     virtual double getBound() =0;
+    virtual void terminate()=0;
 
     MPIManager(MPIDataManager &manager) : dataManager(manager) {};
     virtual ~MPIManager() {};

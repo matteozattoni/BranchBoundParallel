@@ -13,9 +13,9 @@ KnapsackProblem::~KnapsackProblem() {}
 
 KnapsackProblemElement::KnapsackProblemElement(double p, double w): profit(p), weight(w) {}
 
-const KnapsackProblemElement* KnapsackProblem::getKnapsackProblemElements() const {
-    const BranchBoundProblemElement* elements = this->getProblemElements();
-    const KnapsackProblemElement* knapsackElements = dynamic_cast<const KnapsackProblemElement*>(elements);
+KnapsackProblemElement* KnapsackProblem::getKnapsackProblemElements() const {
+    BranchBoundProblemElement* elements = this->getProblemElements();
+    KnapsackProblemElement* knapsackElements = static_cast<KnapsackProblemElement*>(elements);
     if (knapsackElements == nullptr)
         throw InvalidProblemElementCast;
     return knapsackElements;

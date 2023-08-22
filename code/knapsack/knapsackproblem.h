@@ -18,11 +18,11 @@ public:
 class KnapsackProblem : public BranchBoundProblem
 {
 private:
-    const int knapsackCapacity;
+    int knapsackCapacity;
     static const int LINE_DIMENSION=50;
     /* data */
 public:
-    const KnapsackProblemElement* getKnapsackProblemElements() const;
+    KnapsackProblemElement* getKnapsackProblemElements() const;
     int getTotalKnapsackCapacity() const;
     KnapsackProblem(BranchBoundProblemElement* elements, int numberElements, int knapsackCapacity);
     ~KnapsackProblem();

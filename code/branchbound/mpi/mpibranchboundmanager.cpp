@@ -9,7 +9,6 @@ MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : MPIManag
     MPI_Init(NULL, NULL);
     manager.commitDatatypes();
     masterpoolManager = new MasterpoolManager(manager);
-    workpoolManager = new WorkpoolManager(manager);
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
 }
@@ -17,11 +16,10 @@ MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : MPIManag
 MPIBranchBoundManager::~MPIBranchBoundManager()
 {
     delete masterpoolManager;
-    delete workpoolManager;
     MPI_Finalize();
 }
 
-const Branch *MPIBranchBoundManager::getRootBranch()
+Branch *MPIBranchBoundManager::getRootBranch()
 {
     if (worldRank == 0)
         return dataManager.getRootBranch();
@@ -59,59 +57,63 @@ BranchBoundProblem *MPIBranchBoundManager::getBranchProblem()
 void MPIBranchBoundManager::prologue(std::function<void(BranchBoundResult *)> callback)
 {
     masterpoolManager->prologue(callback);
-    workpoolManager->prologue(callback);
 }
 
 void MPIBranchBoundManager::epilogue(std::function<const Branch *()> callback)
 {
     masterpoolManager->epilogue(callback);
-    workpoolManager->epilogue(callback);
 }
 
 void MPIBranchBoundManager::sendBound(BranchBoundResultSolution *bound)
 {
     masterpoolManager->sendBound(bound);
-    workpoolManager->sendBound(bound);
 }
 
 BranchBoundResultBranch *MPIBranchBoundManager::getBranch()
 {
-    if (masterpoolManager->isCommEnabled())
-    {
-        try
-        {
-            return workpoolManager->getBranch();
-        }
-        catch (const MPILocalTerminationException &e)
-        {
-            return masterpoolManager->getBranch();
-        }
-    }
-    else
-    {
-        return workpoolManager->getBranch();
-    }
+    return masterpoolManager->getBranch();
 }
 
 BranchBoundResultBranch *MPIBranchBoundManager::waitForBranch()
 {
     try
     {
-        return getBranch();
+        return masterpoolManager->waitForBranch();
     }
-    catch (const MPILocalTerminationException &e) // Workpool and Masterpool reached Local Termination
+    catch (const MPIGlobalTerminationException &e) // Workpool and Masterpool reached Local Termination
     {
-        try
-        {
-            return getBranchOrGlobalTermination();
-        }
-        catch (const MPIGlobalTerminationException &e) // Workpool and Masterpool reached Global Termination
-        {
-            double finalbound = 0.0;
-            double maxbound = std::max(workpoolManager->getBound(), masterpoolManager->getBound());
-            MPI_Reduce(&maxbound, &finalbound, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-            throw MPIBranchBoundTerminationException(finalbound);
-        }
+        std::cout << "(" << worldRank <<" ) TERMINATED" << std::endl;
+        terminate();
+        /* long workpoolRecv = ((WorkpoolManager*) workpoolManager)->totalRecvBranch;
+        long workpoolSend = ((WorkpoolManager*) workpoolManager)->totalSendBranch;
+        long masterpoolRecv = ((MasterpoolManager*) masterpoolManager)->totalRecvBranch;
+        long masterpoolSend = ((MasterpoolManager*) masterpoolManager)->totalSendBranch;
+        this->totalRecvBranch = ((WorkpoolManager*) workpoolManager)->totalRecvBranch + ((MasterpoolManager*) masterpoolManager)->totalRecvBranch;
+        this->totalSendBranch = ((WorkpoolManager*) workpoolManager)->totalSendBranch + ((MasterpoolManager*) masterpoolManager)->totalSendBranch;
+        long totalSend;
+        long totalRecv;
+        long totalWorkpoolSend;
+        long totalMasterpoolSend;
+        long totalWorkpoolRecv;
+        long totalMasterpoolRecv; */
+        double finalbound = 0.0;
+        double maxbound = masterpoolManager->getBound();
+        MPI_Reduce(&maxbound, &finalbound, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        /* MPI_Reduce(&totalRecvBranch, &totalRecv, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&totalSendBranch, &totalSend, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&workpoolRecv, &totalWorkpoolRecv, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&workpoolSend, &totalWorkpoolSend, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&masterpoolRecv, &totalMasterpoolRecv, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&masterpoolSend, &totalMasterpoolSend, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+        if (worldRank == 0) {
+            cout << "Total send are: " << totalSend << endl;
+            cout << "Total recv are: " << totalRecv << endl;
+            cout << "Total workpool send are: " << totalWorkpoolSend << endl;
+            cout << "Total workpool recv are: " << totalWorkpoolRecv << endl;
+            cout << "Total masterpool send are: " << totalMasterpoolSend << endl;
+            cout << "Total masterpool recv are: " << totalMasterpoolRecv << endl;
+        } */
+        throw MPIBranchBoundTerminationException(finalbound);
     }
     throw MPIGeneralException("MPIBranchBoundManager::waitForBranch");
 }
@@ -152,25 +154,11 @@ bool MPIBranchBoundManager::isCommEnabled()
 
 void MPIBranchBoundManager::broadcastTerminationWithValue(bool value) {}
 
-BranchBoundResultBranch *MPIBranchBoundManager::getBranchOrGlobalTermination()
+double MPIBranchBoundManager::getBound()
 {
-    if (masterpoolManager->isCommEnabled())
-    {
-        try
-        {
-            return workpoolManager->waitForBranch();
-        }
-        catch (const MPIGlobalTerminationException &e) // Workpool reach global termination
-        {
-            return masterpoolManager->waitForBranch();
-        }
-    }
-    else
-    {
-        return workpoolManager->waitForBranch();
-    }
+    return masterpoolManager->getBound();
 }
 
-double MPIBranchBoundManager::getBound() {
-    return bound;
+void MPIBranchBoundManager::terminate() {
+    masterpoolManager->terminate();
 }

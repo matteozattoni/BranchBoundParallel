@@ -2,8 +2,6 @@
 #include <string.h>
 #include <iostream>
 
-#include "../branchbound/branchbound.h"
-
 using namespace std;
 
 Knapsack::Knapsack() {}
@@ -33,7 +31,7 @@ void Knapsack::setProblem(BranchBoundProblem *problem)
 void Knapsack::setProblemWithRootBranch(BranchBoundProblem *problem)
 {
     setProblem(problem);
-    const KnapsackBranch *knapsackBranch = new KnapsackBranch(0, 0, nullptr);
+    KnapsackBranch *knapsackBranch = new KnapsackBranch(0, 0, nullptr);
     setBranch(knapsackBranch);
 }
 
@@ -42,11 +40,11 @@ void Knapsack::setKnapsackProblem(KnapsackProblem *knapsackProblem)
     this->currentSolution = new KnapsackSolution(knapsackProblem);
 }
 
-void Knapsack::setBranch(const Branch *branch)
+void Knapsack::setBranch(Branch *branch)
 {
     if (isComputingSolution)
         throw AlgorithmAlreadyComputingBranch;
-    const KnapsackBranch *knapsackBranch = dynamic_cast<const KnapsackBranch *>(branch);
+    KnapsackBranch *knapsackBranch = static_cast<KnapsackBranch *>(branch);
     if (knapsackBranch == nullptr)
         throw InvalidBranchCast;
     isComputingSolution = true;
@@ -76,12 +74,12 @@ BranchBoundResult *Knapsack::computeTaskIteration()
         throw AlgorithmIsNotComputingBranch;
     //currentSolution->checkFeasibleSolution();
     KnapsackProblem *knapsackProblem = getKnapsackProblem();
-    auto elemSoluntion = currentSolution->getElementsSolution();
-    int currentNumber = currentSolution->getSolutionSize();
-    const KnapsackProblemElement *problemElements = knapsackProblem->getKnapsackProblemElements();
-    const int problemDimension = knapsackProblem->getProblemElementsNumber();
+    //auto elemSoluntion = currentSolution->getElementsSolution();
+    //int currentNumber = currentSolution->getSolutionSize();
+    //const KnapsackProblemElement *problemElements = knapsackProblem->getKnapsackProblemElements();
+    //const int problemDimension = knapsackProblem->getProblemElementsNumber();
     const int knapsackTotalCapacity = knapsackProblem->getTotalKnapsackCapacity();
-    const int solutionCapacity = currentSolution->getSolutionWeigth();
+    //const int solutionCapacity = currentSolution->getSolutionWeigth();
 
 
     //const KnapsackSubProblem *subProblem = computeSubSolution(elemSoluntion ,currentNumber);
@@ -142,6 +140,9 @@ BranchBoundResult *Knapsack::computeTaskIteration()
 
             int size = currentSolution->getSolutionSize();
             KnapsackBranchElement *solutionBuffer = currentSolution->getElementsSolution();
+
+            
+
             new (&solutionBuffer[size]) KnapsackBranchElement(idCriticalObject, false);
             KnapsackBranch *newBranch = new KnapsackBranch(size + 1, size + 1, solutionBuffer); // seg fault
 
@@ -198,12 +199,12 @@ std::ostream &Knapsack::printAlgorithm(std::ostream &out)
     return out;
 }
 
-const KnapsackSubProblem* Knapsack::computeSubSolution(const KnapsackBranchElement *elem, int numb) const
+KnapsackSubProblem* Knapsack::computeSubSolution(KnapsackBranchElement *elem, int numb) const
 {
     // get id
     std::map<int, bool> knapId;
-    KnapsackProblem *knapProblem = dynamic_cast<KnapsackProblem *>(problem);
-    const int problemDimension = problem->getProblemElementsNumber();
+    KnapsackProblem *knapProblem = static_cast<KnapsackProblem *>(problem);
+    //const int problemDimension = problem->getProblemElementsNumber();
     const int knapsackTotalCapacity = knapProblem->getTotalKnapsackCapacity();
     const KnapsackProblemElement *critEl;
     double profit = 0.0;
@@ -238,7 +239,7 @@ const KnapsackSubProblem* Knapsack::computeSubSolution(const KnapsackBranchEleme
 
     upperbound = profit;
     residualCapacity = knapsackTotalCapacity - totalWeight;
-    int idCriticalObject;
+    int idCriticalObject = -1;
     bool foundCritcalObject = false;
     for (int i = 0; i < problem->getProblemElementsNumber(); i++)
     {
@@ -268,11 +269,16 @@ const KnapsackSubProblem* Knapsack::computeSubSolution(const KnapsackBranchEleme
         upperbound += fract_profit;
     }
 
+    //if (idCriticalObject == -1)
+        //throw KnapsackException("Knapsack::computeSubSolution - idCriticalObject uninitialized");
+
+    
+
     return new KnapsackSubProblem(upperbound, idCriticalObject, foundCritcalObject, residualCapacity);
 }
 
-const KnapsackSubProblem* Knapsack::computeSubSolution() const {
-    const KnapsackProblem *knapsackProblem = static_cast<const KnapsackProblem *>(problem);
+KnapsackSubProblem* Knapsack::computeSubSolution() const {
+    KnapsackProblem *knapsackProblem = static_cast<KnapsackProblem *>(problem);
     if (knapsackProblem == nullptr)
         throw InvalidProblemCast;
     const KnapsackProblemElement* critEl;
@@ -280,7 +286,7 @@ const KnapsackSubProblem* Knapsack::computeSubSolution() const {
     const int totalWeight = currentSolution->getSolutionWeigth();
     double upperbound = currentSolution->getSolutionProfit();
     double residualCapacity = knapsackTotalCapacity - totalWeight;
-    int idCriticalObject;
+    int idCriticalObject = -1;
     double fractProfit;
     bool foundCritcalObject = false;
 
@@ -310,6 +316,9 @@ const KnapsackSubProblem* Knapsack::computeSubSolution() const {
         fractProfit = (residualCapacity / critEl->weight) * critEl->profit;
         upperbound += fractProfit;
     }
+
+    //if (idCriticalObject == -1)
+        //throw KnapsackException("Knapsack::computeSubSolution - idCriticalObject uninitialized");
 
     return new KnapsackSubProblem(upperbound, idCriticalObject, foundCritcalObject, residualCapacity);
 }

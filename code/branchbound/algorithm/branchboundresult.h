@@ -17,7 +17,7 @@ public:
     virtual eBranchBoundResultType getResultType() const =0;
 };
 
-class BranchBoundResultSolution: public virtual BranchBoundResult
+class BranchBoundResultSolution: public BranchBoundResult
 {
 private:
     /* data */
@@ -28,21 +28,21 @@ public:
     virtual ~BranchBoundResultSolution() {}
 };
 
-class BranchBoundResultBranch: public virtual BranchBoundResult
+class BranchBoundResultBranch: public BranchBoundResult
 {
 private:
-    const Branch* branches;
-    const int numberOfBranch;
+    Branch* branches;
+    int numberOfBranch;
     /* data */
 public:
     BranchBoundResultBranch(Branch* b,int n): branches(b), numberOfBranch(n) {}
     virtual ~BranchBoundResultBranch() {};
     eBranchBoundResultType getResultType() const override {return ResultBranch;};
-    int getNumberBranch() {return numberOfBranch;}
-    const Branch* getArrayBranch() { return branches;}
+    int getNumberBranch() const {return numberOfBranch;}
+    Branch* getArrayBranch() const { return branches;}
 };
 
-class BranchBoundResultClosed: public virtual BranchBoundResult
+class BranchBoundResultClosed: public BranchBoundResult
 {
 private:
     /* data */

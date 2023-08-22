@@ -16,7 +16,7 @@ public:
     virtual void setBound(int bound) = 0;
     virtual void setProblem(BranchBoundProblem*) = 0;
     virtual void setProblemWithRootBranch(BranchBoundProblem*) = 0;
-    virtual void setBranch(const Branch*) = 0;
+    virtual void setBranch(Branch*) = 0;
     virtual BranchBoundResult* computeTaskIteration() = 0;
     virtual bool hasCurrentBranch() = 0;
     virtual std::ostream& printAlgorithm(std::ostream& out)=0;

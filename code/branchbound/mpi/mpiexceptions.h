@@ -4,7 +4,7 @@
 #include <exception>
 #include <string>
 
-#define WORKPOOL_WORKER 2
+#define WORKPOOL_WORKER 1
 
 class MPIGeneralException : public std::exception {
 private:
@@ -22,7 +22,7 @@ private:
 public:
     MPIUnimplementedException(std::string reasonString) : reason(reasonString) {};
     const char * what () const throw () {
-        return "reason.c_str()";
+        return reason.c_str();
     }
 };
 

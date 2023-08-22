@@ -8,7 +8,7 @@
 class KnapsackBranchElement : public BranchElement
 {
 private:
-    const bool insideKnapsack;
+    bool insideKnapsack;
     /* data */
 public:
     bool isInsideKnapsack() const { return insideKnapsack; }
@@ -19,14 +19,13 @@ public:
 class KnapsackBranch : public Branch
 {
 private:
-    const int bufferDimension;
     /* data */
 public:
     static AllocatorFixedMemoryPool<KnapsackBranch>* branchMemoryManager;
     static AllocatorArrayMemoryPool<KnapsackBranchElement>* elementsMemoryManager;
     static std::ostream& printKnapsackBranchMemory(std::ostream& out);
     static const KnapsackBranch &rootBranch;
-    const KnapsackBranchElement *getKnapsackBranchElement() const;
+    KnapsackBranchElement *getKnapsackBranchElement() const;
     void * operator new(size_t size);
     void * operator new(size_t size, void* ptr);
     void operator delete(void * p);
