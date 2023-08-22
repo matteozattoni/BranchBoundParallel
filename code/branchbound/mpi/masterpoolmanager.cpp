@@ -158,7 +158,7 @@ void MasterpoolManager::prologue(std::function<void(BranchBoundResult *)> callba
     if (masterpoolComm == MPI_COMM_NULL || masterpoolSize < 2)
         return;
 
-    /* while (!listOfMessage.empty())
+    while (!listOfMessage.empty())
     {
         MPIMessage *message = listOfMessage.back();
         if (message->tag == BOUND)
@@ -172,7 +172,7 @@ void MasterpoolManager::prologue(std::function<void(BranchBoundResult *)> callba
         {
             throw MPIUnimplementedException("MasterpoolManager::prologue: listOfMessage tag unhandled");
         }
-    } */
+    }
 
     // BRANCH RECEIVED
     if (branchReceived.request == MPI_REQUEST_NULL)
@@ -216,7 +216,6 @@ void MasterpoolManager::prologue(std::function<void(BranchBoundResult *)> callba
         void *buffer = dataManager.getEmptybBoundBuff();
         MPI_Recv(buffer, 1, dataManager.getBoundType(), status.MPI_SOURCE, status.MPI_TAG, masterpoolComm, MPI_STATUS_IGNORE);
         BranchBoundResultSolution *result = dataManager.getSolutionFromBound(buffer);
-        this->bound = std::max(this->bound, (double)result->getSolutionResult());
         callback(result);
         MPI_Iprobe(MPI_ANY_SOURCE, BOUND, masterpoolComm, &isBoundIncoming, &status);
     }
