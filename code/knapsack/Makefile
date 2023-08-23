@@ -4,11 +4,12 @@ CC=mpic++
 
 CFLAGS=-c -Wall
 
+.PHONY: clean
 
-compile: knapsack.o
+all: knapsack.o
 
-knapsackprog.o: knapsackresult.cpp knapsackproblem.cpp knapsackbranch.cpp knapsacksolution.cpp knapsack.cpp
-	$(CC) $(CFLAGS) knapsackresult.cpp knapsackproblem.cpp knapsackbranch.cpp knapsacksolution.cpp knapsack.cpp
+knapsack.o: knapsackresult.cpp knapsackproblem.cpp knapsackbranch.cpp knapsacksolution.cpp knapsackmemorymanager.cpp knapsack.cpp
+	$(CC) $(CFLAGS) knapsackresult.cpp knapsackproblem.cpp knapsackbranch.cpp knapsacksolution.cpp knapsackmemorymanager.cpp knapsack.cpp
 
 clean:
 	rm -rf *.o

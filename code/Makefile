@@ -4,19 +4,24 @@ CFLAGS=-c -Wall
 
 MAKE=make
 
-BRANCHBOUNDIR=./branchbound
-KNAPSACKDIR=./knapsack
+BRANCHBOUNDIR=branchbound
+KNAPSACKDIR=knapsack
 
-all: prog
+branch_to_build = $(wildcard branchbound/*.o)
+knap_to_build = $(wildcard knapsack/*.o)
+
+.PHONY: all
+
+all: prog clean
 
 prog: branchbound.o knapsack.o main.o
-	$(CC) main.o -o prog
+	$(CC) $(branch_to_build) $(knap_to_build) main.o -o branchbound.out
 
 branchbound.o:
-	$(MAKE) -C $(BRANCHBOUNDIR) compile
+	$(MAKE) -C $(BRANCHBOUNDIR)
 
 knapsack.o:
-	$(MAKE) -C $(KNAPSACKDIR) compile
+	$(MAKE) -C $(KNAPSACKDIR)
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) main.cpp

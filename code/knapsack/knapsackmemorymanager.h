@@ -22,7 +22,7 @@
 #define LARGE_DATASET "datasets/knapPI_1_10000_1000_1" // optimus is 563647
 
 
-#define FILEPATH MEDIUM_DATASET1
+#define FILEPATH SMALL_DATASET1
 
 class KnapsackMemoryManager: public MPIDataManager
 {
