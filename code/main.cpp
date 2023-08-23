@@ -278,6 +278,7 @@ int runKnaspackParallel() {
     catch (MPIBranchBoundTerminationException &e)
     {   
         cout << "Final solution is " << e.finalSolution << endl;
+        cout << "Memory recap " << endl << knapsack << endl;
         delete branchBound;
         //delete knapsack;
         delete man;
@@ -286,12 +287,14 @@ int runKnaspackParallel() {
         fsec fs = t1 - t0;
         sec d = std::chrono::duration_cast<sec>(fs);
         cout << "Total duration: " << d.count() << "s" << endl;
+        //knapsack->printAlgorithm(cout);
         return 0;
     }
     catch (int e)
     {
         if (e == 0)
         {
+            //knapsack->printAlgorithm(cout);
             delete branchBound;
             //delete knapsack;
             delete man;

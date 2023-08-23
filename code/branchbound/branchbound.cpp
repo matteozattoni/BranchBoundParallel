@@ -83,20 +83,8 @@ void BranchBound::start()
         }
         // call prologue from mpi
         mpiManager->prologue(
-            [this](BranchBoundResult *result)
-            { 
-                this->newBranchBoundResult(result);
-                /* BranchBoundResultSolution *resultSolution = dynamic_cast<BranchBoundResultSolution *>(result);
-                if (resultSolution != nullptr) {
-                    int solution = resultSolution->getSolutionResult();
-                    // std::cout << "(from rank " << rank << ") sol is " << solution << std::endl;
-                    if (algorithm->isBetterBound(solution))
-                        {
-                        setBound(solution);
-                        }
-                        delete resultSolution;
-                } else
-                    this->newBranchBoundResult(result);  */});
+            [this](BranchBoundResult *result) { this->newBranchBoundResult(result);}
+            );
 
         try
         {
@@ -125,10 +113,8 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
     {
         BranchBoundResultSolution *resultSolution = static_cast<BranchBoundResultSolution *>(result);
         int solution = resultSolution->getSolutionResult();
-        // std::cout << "(from rank " << rank << ") sol is " << solution << std::endl;
         if (algorithm->isBetterBound(solution))
         {
-            //std::cout << "new local bound: " << solution  <<std::endl;
             setBound(solution);
             sendBound(resultSolution);
         }
@@ -178,12 +164,7 @@ void BranchBound::addBranchToQueue(Branch *branch)
 }
 
 void BranchBound::setBound(int bound)
-{
-    if (bound == 9147) {
-        std::cout << "("<< rank << ") bound 9147 has been set!!! " << std::endl;
-    }
-    std::cout << "(" << rank <<  ") new bound " << bound << std::endl;
-    
+{    
     this->bound = bound;
     this->algorithm->setBound(bound);
 }
