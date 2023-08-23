@@ -163,7 +163,7 @@ void Knapsack::printCurrentSolution()
 {
     KnapsackProblem *problem = getKnapsackProblem();
     cout << "current solutions: " << endl;
-    for (size_t i = 0; i < problem->getProblemElementsNumber(); i++)
+    for (int i = 0; i < problem->getProblemElementsNumber(); i++)
     {
         const KnapsackProblemElement *ob = &problem->getKnapsackProblemElements()[i];
         int obId = i;

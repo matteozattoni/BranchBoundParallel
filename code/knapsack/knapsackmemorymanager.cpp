@@ -23,12 +23,14 @@ Branch* KnapsackMemoryManager::getRootBranch() {
 // create datatype
 
 void KnapsackMemoryManager::createProblemDatatype() {
-    struct {
+    struct ProblemStruct{
         void* ptrVirtualTable;
         int totalNumberOfElements;
         void *ptrArrayElement;
         int knapCapacity;
-    } problemStruct;
+        ProblemStruct(void*, int, void*, int) {};
+    };
+    const ProblemStruct problemStruct(nullptr, 1, nullptr, 1);
     int numberOfBlocks = 2;
     int numberOfElementPerBlock[] = {1,1};
     MPI_Datatype arrayOfType[] = {MPI_INT, MPI_INT};
@@ -43,13 +45,14 @@ void KnapsackMemoryManager::createProblemDatatype() {
 }
 
 void KnapsackMemoryManager::createProblemElementDatatype() {
-    struct
+    struct ProblemElementStruct
     {
         void *ptrVirtualTable;
         double profit;
         double weigth;
-
-    } problemElementStruct;
+        ProblemElementStruct(void*, double, double){};
+    };
+    const ProblemElementStruct problemElementStruct(nullptr, 1.0, 2.0);
     int numberOfBlocks = 1;
     int numberOfElementPerBlock[] = {2};
     MPI_Datatype arrayOfType[] = {MPI_DOUBLE};
@@ -62,13 +65,14 @@ void KnapsackMemoryManager::createProblemElementDatatype() {
 }
 
 void KnapsackMemoryManager::createBoundDatatype() {
-    struct
+    struct BoundStruct
     {
         void *a;
         int typeClass;
         int solution;
-
-    } boundStruct;
+        BoundStruct(void*, int,int) {};
+    };
+    const BoundStruct boundStruct(nullptr, 0, 0);
     int numberOfBlocks = 1;
     int numberOfElementPerBlock[] = {1};
     MPI_Datatype arrayOfType[] = {MPI_INT};
@@ -81,13 +85,14 @@ void KnapsackMemoryManager::createBoundDatatype() {
 }
 
 void KnapsackMemoryManager::createBranchDatatype() {
-    struct
+    struct BranchElementStruct
     {
         void *ptrVirtualTable;
         int idElement;
         bool isInKnapsack;
-    } branchElementStruct;
-    size_t sizeStruct = sizeof(branchElementStruct);
+        BranchElementStruct(void*,int,bool) {};
+    };
+    const BranchElementStruct branchElementStruct(nullptr, 1,true);
     int numberOfBlocks = 2;
     int numberOfElementPerBlock[] = {1,1};
     MPI_Datatype arrayOfType[] = {MPI_INT, MPI_C_BOOL};

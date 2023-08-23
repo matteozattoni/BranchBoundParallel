@@ -242,7 +242,7 @@ void runKnapsackSequential() {
     seqBranchBound.start(problemSeq, rootBranch);
     cout << "Final solution is " << seqBranchBound.getBound() << endl;
     delete manSeq;
-    delete knapsackSeq;
+    //delete knapsackSeq;
     delete problemSeq;
     
     auto t1 = Time::now();
@@ -270,7 +270,7 @@ int runKnaspackParallel() {
         cout << "Start Branch & Bound Parallel" << endl;
         branchBound->start();
         delete branchBound;
-        delete knapsack;
+        //delete knapsack;
         delete man;
         delete mpiManger;
         return 1;
@@ -279,7 +279,7 @@ int runKnaspackParallel() {
     {   
         cout << "Final solution is " << e.finalSolution << endl;
         delete branchBound;
-        delete knapsack;
+        //delete knapsack;
         delete man;
         delete mpiManger;
         auto t1 = Time::now();
@@ -293,7 +293,7 @@ int runKnaspackParallel() {
         if (e == 0)
         {
             delete branchBound;
-            delete knapsack;
+            //delete knapsack;
             delete man;
             delete mpiManger;
             return 0;
@@ -306,11 +306,7 @@ int runKnaspackParallel() {
 }
 
 int main()
-{
-    typedef std::chrono::high_resolution_clock Time;
-    typedef std::chrono::seconds sec;
-    typedef std::chrono::duration<float> fsec;
-    
+{    
     // test3();
     //runKnapsackSequential();
 

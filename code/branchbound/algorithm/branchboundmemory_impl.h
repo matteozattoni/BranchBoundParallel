@@ -77,7 +77,7 @@ protected:
     {
         bool operator()(const _ChunkArray *x, const _ChunkArray *y) const { return x->sizeMemoryHeap < y->sizeMemoryHeap; }
     };
-    bool isSizeDisposable(size_t a, size_t b)
+    bool isSizeDisposable(int a, int b)
     {
         double pivot = this->pivot; // 0. percet which can be wasted
         if (a < b)

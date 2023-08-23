@@ -122,7 +122,7 @@ void KnapsackSolution::printSolution()
 {
     const KnapsackProblemElement *el = problem->getKnapsackProblemElements();
     cout << "print solution:" << endl;
-    for (size_t i = 0; i < numberSolutionElements; i++)
+    for (int i = 0; i < numberSolutionElements; i++)
     {
         int id = solutionElements[i].getElementId();
         cout << " id: " << id << "(" << el[id].profit << "-" << el[id].weight << ")"

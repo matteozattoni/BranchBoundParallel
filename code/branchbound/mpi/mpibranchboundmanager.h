@@ -36,7 +36,6 @@ public:
     double getBound() override;
     void broadcastTerminationWithValue(bool value) override;
     void terminate() override;
-    void defineType();
     
 };
 

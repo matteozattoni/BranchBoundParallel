@@ -102,7 +102,6 @@ BranchBoundResultBranch *WorkpoolManager::waitForBranch()
     catch (const MPILocalTerminationException &e)
     {
         MPI_Status status;
-        int isBranchIncoming;
         if (tokenTermination.hasToken)
         {
             if (workpoolRank == 0 && tokenTermination.nodeColor == nodeWhite && tokenTermination.tokenColor == tokenWhite)
@@ -201,8 +200,6 @@ void WorkpoolManager::prologue(std::function<void(BranchBoundResult *)> callback
             throw MPIUnimplementedException("MasterpoolManager::prologue: listOfMessage tag unhandled");
         }
     }
-    int boundFlag;
-    MPI_Status status;
 
     // get bound messages if any
     receiveBoundMessage(callback);
@@ -221,7 +218,7 @@ void WorkpoolManager::epilogue(std::function<const Branch *()> callback)
             continue;
 
         MPI_Status status;
-        int hasSent, testFlag;
+        int testFlag;
 
         if (sentBranch[i].request == MPI_REQUEST_NULL)
         {

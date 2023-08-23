@@ -206,8 +206,6 @@ void MasterpoolManager::prologue(std::function<void(BranchBoundResult *)> callba
     }
 
     // BOUND
-    int isBoundReceived;
-
     int isBoundIncoming;
     MPI_Status status;
     MPI_Iprobe(MPI_ANY_SOURCE, BOUND, masterpoolComm, &isBoundIncoming, &status);
