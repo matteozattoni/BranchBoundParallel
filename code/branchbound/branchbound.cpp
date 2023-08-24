@@ -19,6 +19,9 @@ void BranchBound::start()
 {
     BranchBoundProblem *problem;
 
+    if (rank == 0)
+        std::cout << "Start Branch & Bound parallel" << std::endl;
+
     problem = mpiManager->getBranchProblem();
     // get problem from mpi
 
@@ -94,7 +97,11 @@ void BranchBound::start()
             // call epilogue from mpi
             mpiManager->epilogue([this]()
                                  {
-            const Branch *s = this->getTaskFromQueue();
+            Branch *s = nullptr;
+            if (list.size() > 0) {
+                s = list.back();
+                list.pop_back();
+            }
             return s; });
         }
         catch (eBranchBoundException e)
@@ -167,6 +174,8 @@ void BranchBound::setBound(int bound)
 {    
     this->bound = bound;
     this->algorithm->setBound(bound);
+    if (rank==0)
+        std::cout << "new bound: " << bound << std::endl;
 }
 
 std::ostream &operator<<(std::ostream &out, const BranchBound &data)

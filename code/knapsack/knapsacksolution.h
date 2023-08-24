@@ -1,7 +1,7 @@
 #ifndef KNAPSACKSOLUTION
 #define KNAPSACKSOLUTION
 
-#include <set>
+#include <unordered_set>
 #include <utility>
 #include "knapsackproblem.h"
 #include "knapsackbranch.h"
@@ -9,6 +9,7 @@
 class KnapsackSolution
 {
 private:
+    std::unordered_set<int> setElementsId;
     KnapsackProblem* problem;
     int numberSolutionElements = 0;
     int solutionTotalWeigth = 0;

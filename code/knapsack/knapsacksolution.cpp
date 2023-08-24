@@ -44,6 +44,7 @@ void KnapsackSolution::setElementsFromBranch(KnapsackBranch *branch)
 {
     solutionTotalProfit = 0;
     solutionTotalWeigth = 0;
+    setElementsId.clear();
     numberSolutionElements = branch->getNumberOfElements();
 
     if (numberSolutionElements == 0)
@@ -55,6 +56,7 @@ void KnapsackSolution::setElementsFromBranch(KnapsackBranch *branch)
     {
         int id = elementsToCopy[i].getElementId();
         bool inKnapsack = elementsToCopy[i].isInsideKnapsack();
+        setElementsId.insert(id);
         new(&solutionElements[i]) KnapsackBranchElement(id, inKnapsack);
     }
     
@@ -75,13 +77,8 @@ void KnapsackSolution::setElementsFromBranch(KnapsackBranch *branch)
 }
 
 bool KnapsackSolution::hasObjectId(int id)
-{
-    bool hasThisId = false;
-    for (int i = 0; i < numberSolutionElements; i++)
-    {
-        hasThisId = hasThisId || solutionElements[i].getElementId() == id;
-    }
-    return hasThisId;
+{    
+    return setElementsId.find(id) != setElementsId.end();
 }
 
 void KnapsackSolution::addObjectToSolution(int id, bool in_knapsack, int profit, int weigth)
@@ -104,6 +101,7 @@ void KnapsackSolution::addObjectToSolution(int id, bool in_knapsack, int profit,
     }
     new (&solutionElements[numberSolutionElements]) KnapsackBranchElement(id, in_knapsack);
     numberSolutionElements++;
+    setElementsId.insert(id);
 }
 
 void KnapsackSolution::copySolutionTo(KnapsackBranchElement *buff)
@@ -128,6 +126,7 @@ void KnapsackSolution::printSolution()
         cout << " id: " << id << "(" << el[id].profit << "-" << el[id].weight << ")"
              << " in bin: " << solutionElements[i].isInsideKnapsack() << endl;
     }
+    cout << "Tot: Profit " << solutionTotalProfit << " Weight: " << solutionTotalWeigth << endl;
 }
 
 void KnapsackSolution::checkFeasibleSolution()

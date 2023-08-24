@@ -34,10 +34,11 @@ private:
     /* data */
 public:
     const double upperbound;
+    const double lowerbound;
     const int idObject;
     const bool foundObject;
     const double residualCapacity;
-    KnapsackSubProblem(double bound, int id, bool isFoundObject, double capacity);
+    KnapsackSubProblem(double upperbound, double lowerbound, int id, bool isFoundObject, double capacity);
     ~KnapsackSubProblem();
     void * operator new(size_t size);
     void operator delete(void * p);

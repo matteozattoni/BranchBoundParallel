@@ -14,9 +14,6 @@ WorkpoolManager::WorkpoolManager(MPIDataManager &manager) : MPIManager(manager)
     MPI_Irecv(receiveBound.boundBuffer, 1, dataManager.getBoundType(), MPI_ANY_SOURCE, TAG_BOUND, workpoolComm, &receiveBound.request);
     if (workpoolRank == 0)
         tokenTermination.hasToken = true;
-
-    std::cout << "World rank: " << worldRank;
-    std::cout << " - I'm workpool! with rank: " << workpoolRank << std::endl;
 }
 
 WorkpoolManager::~WorkpoolManager()

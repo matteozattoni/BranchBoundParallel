@@ -267,7 +267,6 @@ int runKnaspackParallel() {
     BranchBound *branchBound = new BranchBound(mpiManger, knapsack);
     try
     {
-        cout << "Start Branch & Bound Parallel" << endl;
         branchBound->start();
         delete branchBound;
         //delete knapsack;
@@ -278,7 +277,6 @@ int runKnaspackParallel() {
     catch (MPIBranchBoundTerminationException &e)
     {   
         cout << "Final solution is " << e.finalSolution << endl;
-        cout << "Memory recap " << endl << knapsack << endl;
         delete branchBound;
         //delete knapsack;
         delete man;
