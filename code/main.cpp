@@ -257,9 +257,9 @@ int runKnaspackParallel() {
     auto t0 = Time::now();
     Knapsack *knapsack = new Knapsack();
     KnapsackMemoryManager *man = new KnapsackMemoryManager();
-    man->testProblemMemory();
+/*     man->testProblemMemory(); // debug
     man->testBranchMemory();
-    man->testBoundMemory();
+    man->testBoundMemory(); */
     MPIBranchBoundManager *mpiManger = new MPIBranchBoundManager(*man);
  
     BranchBound *branchBound = new BranchBound(mpiManger, knapsack);
