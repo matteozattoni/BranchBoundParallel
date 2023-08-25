@@ -3,6 +3,7 @@
 
 #include "mpimanager.h"
 #include "mpimessage.h"
+#include <vector>
 
 class WorkpoolManager: public MPIManager
 {

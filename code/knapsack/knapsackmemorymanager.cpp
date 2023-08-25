@@ -265,7 +265,7 @@ std::pair<void*,int> KnapsackMemoryManager::getBranchBuffer(const Branch* branch
         int count = branch->getNumberOfElements();
         void* ptr = (void*) branch->getBranchElements();
         KnapsackBranch::branchMemoryManager->deallocate((KnapsackBranch*) knapsackBranch);
-        return std::pair(ptr,count);
+        return std::pair<void*,int>(ptr,count);
     }
     catch(const std::bad_cast& e)
     {

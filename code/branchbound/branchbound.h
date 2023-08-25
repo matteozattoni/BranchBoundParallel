@@ -7,7 +7,6 @@
 #include "algorithm/branchboundalgorithm.h"
 #include "algorithm/branchboundproblem.h"
 #include "algorithm/branchboundresult.h"
-#include "branchboundmemorymanager.h"
 #include "mpi/mpibranchboundmanager.h"
 
 class BranchBound

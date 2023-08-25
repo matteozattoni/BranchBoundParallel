@@ -1,5 +1,4 @@
 #include "branchbound.h"
-#include "branchboundmemorymanager.h"
 #include "algorithm/branchboundexception.h"
 #include "mpi/mpiexceptions.h"
 #include <iostream>
