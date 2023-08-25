@@ -4,7 +4,7 @@
 #include <iostream>
 
 AllocatorFixedMemoryPool<KnapsackBranch>* KnapsackBranch::branchMemoryManager = new AllocatorFixedMemoryPool<KnapsackBranch>();
-AllocatorArrayMemoryPool<KnapsackBranchElement>* KnapsackBranch::elementsMemoryManager = new AllocatorArrayMemoryPool<KnapsackBranchElement>(0.4, 50);
+AllocatorArrayMemoryPool<KnapsackBranchElement>* KnapsackBranch::elementsMemoryManager = new AllocatorArrayMemoryPool<KnapsackBranchElement>(0.3, 50);
 const KnapsackBranch& KnapsackBranch::rootBranch = KnapsackBranch(0, nullptr);
 
 std::ostream& KnapsackBranch::printKnapsackBranchMemory(std::ostream& out) {

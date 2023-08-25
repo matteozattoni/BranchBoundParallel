@@ -86,7 +86,7 @@ protected:
             return true;
         double A = a;
         double B = b;
-        double relativeDelta = A - (A / B); // wasted size
+        double relativeDelta = (A - B)/A; // wasted size
         if (relativeDelta > pivot)
             return false;
         return true;
