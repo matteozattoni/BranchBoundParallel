@@ -28,13 +28,6 @@ void Knapsack::setProblem(BranchBoundProblem *problem)
     setKnapsackProblem(knapsackProblem);
 }
 
-void Knapsack::setProblemWithRootBranch(BranchBoundProblem *problem)
-{
-    setProblem(problem);
-    KnapsackBranch *knapsackBranch = new KnapsackBranch(0, 0, nullptr);
-    setBranch(knapsackBranch);
-}
-
 void Knapsack::setKnapsackProblem(KnapsackProblem *knapsackProblem)
 {
     this->currentSolution = new KnapsackSolution(knapsackProblem);

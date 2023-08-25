@@ -64,7 +64,6 @@ public:
     bool isBetterBound(int bound) override;
     void setBound(int bound) override;
     void setProblem(BranchBoundProblem*) override;
-    void setProblemWithRootBranch(BranchBoundProblem*) override;
     void setBranch(Branch*) override;
     BranchBoundResult* computeTaskIteration() override;
     bool hasCurrentBranch() override;
