@@ -19,6 +19,6 @@
 #SBATCH -e %j.err
 
 ## Command(s) to run (example):
-eval spack load --sh openmpi@4.1.3%gcc@9.4.0
+#eval spack load --sh openmpi@4.1.3%gcc@9.4.0
 srun /bin/hostname ## print the hostname
 srun --mpi=pmix ./branchbound.out ##pmix is the slurm launcher (like mpirun) 
