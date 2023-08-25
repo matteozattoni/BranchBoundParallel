@@ -4,7 +4,7 @@
 #include <exception>
 #include <string>
 
-#define WORKPOOL_WORKER 32
+#define WORKPOOL_WORKER 36
 
 class MPIGeneralException : public std::exception {
 private:
