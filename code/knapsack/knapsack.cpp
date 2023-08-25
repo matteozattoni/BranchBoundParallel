@@ -125,11 +125,6 @@ BranchBoundResult *Knapsack::computeTaskIteration()
         return solution;
     }
 
-    if (upperbound < bound) {
-
-    }
-
-
     if (residualCapacity > 0)
     { // relaxed solution
         //cout << "upperbound is " << upperbound << " residual: " << residualCapacity << endl;
