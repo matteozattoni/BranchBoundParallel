@@ -227,8 +227,7 @@ void WorkpoolManager::epilogue(std::function<const Branch *()> callback)
                 MPI_Issend(pair.first, pair.second, dataManager.getBranchType(), i, TAG_BRANCH, workpoolComm, &sentBranch[i].request);
                 sentBranch[i].branchBuffer = pair.first;
                 sentBranch[i].numElement = pair.second;
-                //if (i < workpoolRank)
-                    tokenTermination.nodeColor = nodeBlack;
+                tokenTermination.nodeColor = nodeBlack;
             }
         }
         else

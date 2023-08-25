@@ -259,14 +259,25 @@ BranchBoundResultSolution* KnapsackMemoryManager::getSolutionFromBound(void* buf
 
  // SEND
 std::pair<void*,int> KnapsackMemoryManager::getBranchBuffer(const Branch* branch) {
-    int count = branch->getNumberOfElements();
-    void* ptr = (void*) branch->getBranchElements();
-    return std::pair(ptr,count);
+    try
+    {
+        const KnapsackBranch* knapsackBranch = dynamic_cast<const KnapsackBranch*>(branch);
+        int count = branch->getNumberOfElements();
+        void* ptr = (void*) branch->getBranchElements();
+        KnapsackBranch::branchMemoryManager->deallocate((KnapsackBranch*) knapsackBranch);
+        return std::pair(ptr,count);
+    }
+    catch(const std::bad_cast& e)
+    {
+        std::cerr << e.what() << '\n';
+        throw e;
+    }
 }
 
 void KnapsackMemoryManager::sentFinished(void* buff, int count) {
     KnapsackBranchElement* elements = (KnapsackBranchElement*) buff;
-    delete elements;
+    KnapsackBranch::elementsMemoryManager->deallocate(elements);
+    //delete elements;
 }
 
 BranchBoundResultBranch* KnapsackMemoryManager::getBranchFromBuff(void* buff, int count) {
