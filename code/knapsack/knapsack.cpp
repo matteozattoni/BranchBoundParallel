@@ -65,7 +65,7 @@ BranchBoundResult *Knapsack::computeTaskIteration()
 {
     if (!isComputingSolution)
         throw AlgorithmIsNotComputingBranch;
-    currentSolution->checkFeasibleSolution();
+    //currentSolution->checkFeasibleSolution(); //debug
     //currentSolution->printSolution();
     KnapsackProblem *knapsackProblem = getKnapsackProblem();
     const int knapsackTotalCapacity = knapsackProblem->getTotalKnapsackCapacity();

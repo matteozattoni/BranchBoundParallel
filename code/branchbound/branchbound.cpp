@@ -174,8 +174,8 @@ void BranchBound::setBound(int bound)
 {    
     this->bound = bound;
     this->algorithm->setBound(bound);
-    if (rank==0)
-        std::cout << "new bound: " << bound << std::endl;
+/*     if (rank==0) //debug
+        std::cout << "new bound: " << bound << std::endl; */
 }
 
 std::ostream &operator<<(std::ostream &out, const BranchBound &data)

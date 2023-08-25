@@ -113,8 +113,6 @@ void test2()
     MPI_Get_address(&test.value2, &b);
     offsets[0] = a - base;
     offsets[1] = b - base;
-    // offsets[0] = offsetof(Data2, value1);
-    // offsets[1] = offsetof(Data2, value2);
 
     // Definisci un tipo derivato personalizzato che inizia dal doppio offset
     int numElementsBlock[2] = {1,1};

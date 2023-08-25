@@ -31,13 +31,13 @@ MasterpoolManager::MasterpoolManager(MPIDataManager &manager) : MPIManager(manag
         tokenTermination.hasToken = masterpoolRank == 0 ? true : false;
     }
     MPI_Group_free(&masterGroup);
-    std::cout << "World rank: " << worldRank;
+    /* std::cout << "World rank: " << worldRank; //debug
     if (masterpoolComm == MPI_COMM_NULL)
     {
         std::cout << " - I'm NOT in master pool" << std::endl;
     }
     else
-        std::cout << " - I'm IN master pool! with rank: " << masterpoolRank << std::endl;
+        std::cout << " - I'm IN master pool! with rank: " << masterpoolRank << std::endl; */
     workpoolManager = new WorkpoolManager(manager);
 }
 
@@ -404,8 +404,8 @@ BranchBoundResultBranch *MasterpoolManager::getResultFromStatus(MPI_Status statu
     }
     case TERMINATION:
     {
-        if (!isLocalTerminate())
-            std::cout << "THIS SHOULDNT HAPPEN" << std::endl;
+/*         if (!isLocalTerminate())
+            std::cout << "THIS SHOULDNT HAPPEN" << std::endl; */
         int termination;
         MPI_Recv(&termination, 1, MPI_INT, status.MPI_SOURCE, status.MPI_TAG, masterpoolComm, MPI_STATUS_IGNORE);
         throw MPIGlobalTerminationException();
