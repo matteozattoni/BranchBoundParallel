@@ -47,7 +47,6 @@ public:
     friend std::ostream& operator <<(std::ostream &out, AllocatorFixedMemoryPool<T> const& data) {
         size_t potentialSizeAllocated = sizeof(T) * data.getNumberOfRequest();
         size_t realSizeAllocated = sizeof(T) * data.getNumberOfMalloc();
-        //out<<"AllocatorFixedMemoryPool: " << typeid(data).name() <<" - " << std::endl;
         out<<"\tNumber of allocate function call: " << data.getNumberOfRequest() << std::endl;
         out<<"\tNumber of malloc called: " << data.getNumberOfMalloc() << std::endl;
         out<<"\tTotal Bytes requested: " << potentialSizeAllocated << std::endl;
@@ -121,6 +120,23 @@ public:
         }
 
         T *newPtr = (T *)calloc(size, sizeof(T));
+        if (newPtr == nullptr) { // check if memory is low
+            it = freeArrays.begin();
+            while (it != freeArrays.end()) { // free all pool memory
+                _ChunkArray *c = *it;
+                pointerSize.erase(c->pointer);
+                freeArrays.erase(it);
+                poolChunk.deallocate(c);
+                free(c->pointer);
+            }
+            newPtr = (T *)calloc(size, sizeof(T)); // retry the memory request
+            if (newPtr == nullptr) {
+                std::bad_alloc exception;
+                throw exception;
+            }
+                
+        }
+
         pointerSize[newPtr] = size;
         sizeAllocated+=size;
         return newPtr;
