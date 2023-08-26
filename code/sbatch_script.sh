@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # Job name:
-#SBATCH --job-name=bra_bound
+#SBATCH --job-name=br_bound
 #
 # Partition:
 #SBATCH --partition=broadwell
@@ -10,7 +10,7 @@
 #SBATCH --nodes=4
 #
 # Wall clock limit 4 hours:
-#SBATCH --time=04:00:00
+## SBATCH --time=04:00:00
 #
 # Log
 #SBATCH -o %j.log

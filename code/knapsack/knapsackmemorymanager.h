@@ -19,8 +19,8 @@
 #define MEDIUM_DATASET1 "datasets/knapPI_1_100_1000_1" // opt 9147
 #define MEDIUM_DATASET2 "datasets/knapPI_2_100_1000_1" // opt 1514
 #define MEDIUM_DATASET3 "datasets/knapPI_1_200_1000_1" // opt 11238
-#define LARGE_DATASET "datasets/knapPI_1_10000_1000_1" // optimus is 563647
 
+#define LARGE_DATASET "datasets/knapPI_1_10000_1000_1" // optimus is 563647
 #define LARGE_DATASET2 "datasets/large/knapPI_2_10000_1000_1" // optimus is 90204
 #define LARGE_DATASET3 "datasets/large/knapPI_3_10000_1000_1" // optimus is 146919
 

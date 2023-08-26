@@ -118,13 +118,13 @@ BranchBoundResultBranch *WorkpoolManager::waitForBranch()
 
 void WorkpoolManager::sendBound(BranchBoundResultSolution *bound)
 {
-/*     if (this->bound >= bound->getSolutionResult())
-        return; */
+    if (this->bound >= bound->getSolutionResult())
+        return;
     
     this->bound = (double) bound->getSolutionResult();
 
-/*     if (workpoolSize < 2)
-        return; */
+    if (workpoolSize < 2)
+        return;
 
     int index = 0;
     MPI_Request sendRequest[workpoolSize - 1];

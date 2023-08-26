@@ -221,9 +221,12 @@ void MasterpoolManager::prologue(std::function<void(BranchBoundResult *)> callba
 
 void MasterpoolManager::epilogue(std::function<const Branch *()> callback)
 {
-    workpoolManager->epilogue(callback);
-    if (masterpoolComm == MPI_COMM_NULL || masterpoolSize < 2)
+    
+    if (masterpoolComm == MPI_COMM_NULL || masterpoolSize < 2) {
+        workpoolManager->epilogue(callback);
         return;
+    }
+        
 
     if (branchSent.request == MPI_REQUEST_NULL)
     {
@@ -258,6 +261,8 @@ void MasterpoolManager::epilogue(std::function<const Branch *()> callback)
             }
         }
     }
+
+    workpoolManager->epilogue(callback);
 }
 
 void MasterpoolManager::sendBound(BranchBoundResultSolution *bound)
