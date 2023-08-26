@@ -9,7 +9,7 @@
 class KnapsackSolution
 {
 private:
-    std::unordered_set<int> setElementsId;
+    std::set<int> setElementsId;
     KnapsackProblem* problem;
     int numberSolutionElements = 0;
     int solutionTotalWeigth = 0;

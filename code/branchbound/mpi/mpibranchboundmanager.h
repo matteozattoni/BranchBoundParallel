@@ -18,8 +18,6 @@ private:
     int worldSize;
     int worldRank;
     MPI_Comm workpoolComm;
-    int workpoolRank;
-    int workpoolSize;
     MPIManager *masterpoolManager;
 public:
     MPIBranchBoundManager(MPIDataManager &manager);

@@ -55,8 +55,7 @@ private:
 
     void setKnapsackProblem(KnapsackProblem*);
     KnapsackProblem* getKnapsackProblem();
-    KnapsackSubProblem* computeSubSolution(KnapsackBranchElement* elem, int numb) const;
-    KnapsackSubProblem* computeSubSolution() const;
+    const KnapsackSubProblem* computeSubSolution() const;
 public:
     Knapsack(/* manager?*/);
     ~Knapsack();
