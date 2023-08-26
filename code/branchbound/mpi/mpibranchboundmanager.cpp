@@ -11,6 +11,8 @@ MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : MPIManag
     masterpoolManager = new MasterpoolManager(manager);
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+    if (worldRank == 0)
+        std::cout << "Comm World size: "  << workpoolSize << std::endl;
 }
 
 MPIBranchBoundManager::~MPIBranchBoundManager()
