@@ -13,6 +13,7 @@ void KnapsackSolution::clear()
 KnapsackSolution::KnapsackSolution(KnapsackProblem *p) : problem(p)
 {
     solutionElements = (KnapsackBranchElement *)calloc(p->getProblemElementsNumber(), sizeof(KnapsackBranchElement));
+    hasThisElementVector.reserve(problem->getProblemElementsNumber());
 }
 
 KnapsackSolution::~KnapsackSolution()
@@ -44,7 +45,7 @@ void KnapsackSolution::setElementsFromBranch(KnapsackBranch *branch)
 {
     solutionTotalProfit = 0;
     solutionTotalWeigth = 0;
-    setElementsId.clear();
+    hasThisElementVector.assign(problem->getProblemElementsNumber(), false);
     numberSolutionElements = branch->getNumberOfElements();
 
     if (numberSolutionElements == 0)
@@ -56,7 +57,7 @@ void KnapsackSolution::setElementsFromBranch(KnapsackBranch *branch)
     {
         int id = elementsToCopy[i].getElementId();
         bool inKnapsack = elementsToCopy[i].isInsideKnapsack();
-        setElementsId.insert(id);
+        hasThisElementVector[id] = true;
         new(&solutionElements[i]) KnapsackBranchElement(id, inKnapsack);
     }
     
@@ -78,7 +79,7 @@ void KnapsackSolution::setElementsFromBranch(KnapsackBranch *branch)
 
 bool KnapsackSolution::hasObjectId(int id)
 {    
-    return setElementsId.find(id) != setElementsId.end();
+    return hasThisElementVector[id];
 }
 
 void KnapsackSolution::addObjectToSolution(int id, bool in_knapsack, int profit, int weigth)
@@ -101,7 +102,7 @@ void KnapsackSolution::addObjectToSolution(int id, bool in_knapsack, int profit,
     }
     new (&solutionElements[numberSolutionElements]) KnapsackBranchElement(id, in_knapsack);
     numberSolutionElements++;
-    setElementsId.insert(id);
+    hasThisElementVector[id] = true;
 }
 
 void KnapsackSolution::copySolutionTo(KnapsackBranchElement *buff)

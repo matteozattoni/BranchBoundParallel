@@ -2,6 +2,7 @@
 #define KNAPSACKSOLUTION
 
 #include <unordered_set>
+#include <vector>
 #include <utility>
 #include "knapsackproblem.h"
 #include "knapsackbranch.h"
@@ -9,7 +10,7 @@
 class KnapsackSolution
 {
 private:
-    std::set<int> setElementsId;
+    std::vector<bool> hasThisElementVector;
     KnapsackProblem* problem;
     int numberSolutionElements = 0;
     int solutionTotalWeigth = 0;
