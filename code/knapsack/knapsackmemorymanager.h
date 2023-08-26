@@ -24,8 +24,14 @@
 #define LARGE_DATASET2 "datasets/large/knapPI_2_10000_1000_1" // optimus is 90204
 #define LARGE_DATASET3 "datasets/large/knapPI_3_10000_1000_1" // optimus is 146919
 
+#define CORR_DATASET1 "datasets/large/knapPI_3_100_1000_1" // 2397
+#define CORR_DATASET2 "datasets/large/knapPI_3_200_1000_1" // 2697
+#define CORR_DATASET3 "datasets/large/knapPI_3_500_1000_1" // 7117
+#define CORR_DATASET4 "datasets/large/knapPI_3_1000_1000_1" // 14390
+#define CORR_DATASET5 "datasets/large/knapPI_3_2000_1000_1" // 28919
+#define CORR_DATASET6 "datasets/large/knapPI_3_5000_1000_1" // 72505
 
-#define FILEPATH LARGE_DATASET
+#define FILEPATH CORR_DATASET4
 
 class KnapsackMemoryManager: public MPIDataManager
 {
