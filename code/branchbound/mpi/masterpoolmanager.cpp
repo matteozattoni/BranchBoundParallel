@@ -29,6 +29,8 @@ MasterpoolManager::MasterpoolManager(MPIDataManager &manager) : MPIManager(manag
         MPI_Comm_rank(masterpoolComm, &masterpoolRank);
         nextRankToSend = (masterpoolRank + 1) % masterpoolSize;
         tokenTermination.hasToken = masterpoolRank == 0 ? true : false;
+        if (masterpoolRank == 0)
+            std::cout << "Comm Master pool size: " << masterpoolSize << std::endl;
     }
     MPI_Group_free(&masterGroup);
     /* std::cout << "World rank: " << worldRank; //debug
