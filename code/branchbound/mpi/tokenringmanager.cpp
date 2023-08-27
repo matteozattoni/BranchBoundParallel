@@ -11,6 +11,7 @@ TokenRingManager::TokenRingManager(MPIDataManager &manager) : MPIManager(manager
 
 TokenRingManager::~TokenRingManager()
 {
+    checkTermination();
 }
 
 BranchBoundProblem *TokenRingManager::getBranchProblem()
@@ -296,4 +297,23 @@ void TokenRingManager::sendToken()
     }
     tokenTermination.nodeColor = nodeWhite;
     tokenTermination.hasToken = false;
+}
+
+
+void TokenRingManager::checkTermination()
+{
+    int someMessage;
+    MPI_Status status;
+    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &someMessage, &status);
+    if (someMessage && status.MPI_TAG == BRANCH)
+        std::cout << "There is some branch message before deallocating Mastermanager" << std::endl;
+    if (branchReceived.request != MPI_REQUEST_NULL)
+        std::cout << "branchReceived request is not null! Mastermanager " << std::endl;
+    if (branchSent.request != MPI_REQUEST_NULL)
+    {
+        int isFinished;
+        MPI_Test(&branchSent.request, &isFinished, MPI_STATUS_IGNORE);
+        if (!isFinished)
+            std::cout << "branchSent request has not been read! Mastermanager " << std::endl;
+    }
 }

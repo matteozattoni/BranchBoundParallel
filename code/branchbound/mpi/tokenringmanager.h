@@ -39,6 +39,7 @@ private:
     BranchBoundResultBranch* getResultFromStatus(MPI_Status status);
     bool isLocalTerminate();
     void sendToken();
+    void checkTermination();
 public:
     BranchBoundProblem* getBranchProblem() override;
     Branch* getRootBranch() override;
