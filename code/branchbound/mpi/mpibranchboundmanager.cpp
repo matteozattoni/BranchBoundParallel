@@ -12,7 +12,12 @@ MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : MPIManag
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
     if (worldRank == 0)
-        std::cout << "Comm World size: "  << worldSize << std::endl;
+        std::cout << "Comm World size: " << worldSize << std::endl;
+    branchInitSent[0].child = (2 * worldRank) + 1;
+    branchInitSent[0].mustBeSent = branchInitSent[0].child < (worldSize);
+    branchInitSent[1].child = (2 * worldRank) + 2;
+    branchInitSent[1].mustBeSent = branchInitSent[1].child < (worldSize);
+    mustWaitInitialBranch = worldRank != 0;
 }
 
 MPIBranchBoundManager::~MPIBranchBoundManager()
@@ -57,11 +62,50 @@ BranchBoundProblem *MPIBranchBoundManager::getBranchProblem()
 
 void MPIBranchBoundManager::prologue(std::function<void(BranchBoundResult *)> callback)
 {
+    if (mustWaitInitialBranch)
+    {
+        MPI_Status status;
+        MPI_Probe(MPI_ANY_SOURCE, BRANCH, MPI_COMM_WORLD, &status);
+        int countElem;
+        MPI_Get_count(&status, dataManager.getBranchType(), &countElem);
+        if (countElem == MPI_UNDEFINED)
+            throw MPIGeneralException("BranchBoundManager::prologue - MPI_Get_count return MPI_UNDEFINED");
+        void *buffer = dataManager.getEmptyBranchElementBuff(countElem);
+        MPI_Recv(buffer, countElem, dataManager.getBranchType(), status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, &status);
+        BranchBoundResultBranch *branch = dataManager.getBranchFromBuff(buffer, countElem);
+        mustWaitInitialBranch = false;
+        callback(branch);
+    }
+
     masterpoolManager->prologue(callback);
 }
 
 void MPIBranchBoundManager::epilogue(std::function<const Branch *()> callback)
 {
+    if (branchInitSent[0].mustBeSent)
+    {
+        const Branch *branchToSend = callback();
+        if (branchToSend != nullptr)
+        {
+            std::pair<void *, int> pairToSend = dataManager.getBranchBuffer(branchToSend);
+            MPI_Send(pairToSend.first, pairToSend.second, dataManager.getBranchType(), branchInitSent[0].child, BRANCH, MPI_COMM_WORLD);
+            dataManager.sentFinished(pairToSend.first, pairToSend.second);
+            branchInitSent[0].mustBeSent = false;
+        }
+    }
+
+    if (branchInitSent[1].mustBeSent)
+    {
+        const Branch *branchToSend = callback();
+        if (branchToSend != nullptr)
+        {
+            std::pair<void *, int> pairToSend = dataManager.getBranchBuffer(branchToSend);
+            MPI_Send(pairToSend.first, pairToSend.second, dataManager.getBranchType(), branchInitSent[1].child, BRANCH, MPI_COMM_WORLD);
+            dataManager.sentFinished(pairToSend.first, pairToSend.second);
+            branchInitSent[1].mustBeSent = false;
+        }
+    }
+
     masterpoolManager->epilogue(callback);
 }
 
@@ -83,7 +127,7 @@ BranchBoundResultBranch *MPIBranchBoundManager::waitForBranch()
     }
     catch (const MPIGlobalTerminationException &e) // Workpool and Masterpool reached Local Termination
     {
-        //std::cout << "(" << worldRank <<" ) TERMINATED" << std::endl;
+        // std::cout << "(" << worldRank <<" ) TERMINATED" << std::endl;
         terminate();
 
         double finalbound = 0.0;
@@ -106,6 +150,7 @@ double MPIBranchBoundManager::getBound()
     return masterpoolManager->getBound();
 }
 
-void MPIBranchBoundManager::terminate() {
+void MPIBranchBoundManager::terminate()
+{
     masterpoolManager->terminate();
 }

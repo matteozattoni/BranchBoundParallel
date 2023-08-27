@@ -19,6 +19,15 @@ private:
     int worldRank;
     MPI_Comm workpoolComm;
     MPIManager *masterpoolManager;
+    enum tagMessage { BRANCH, BRANCH_REQUEST, BOUND, TOKEN, TERMINATION};
+    struct {
+        int child;
+        MPI_Request request = MPI_REQUEST_NULL;
+        void* buffer;
+        int numElement;
+        bool mustBeSent;
+    } branchInitSent[2];
+    bool mustWaitInitialBranch;
 public:
     MPIBranchBoundManager(MPIDataManager &manager);
     ~MPIBranchBoundManager();

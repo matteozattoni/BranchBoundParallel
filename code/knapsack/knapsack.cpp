@@ -81,6 +81,7 @@ BranchBoundResult *Knapsack::computeTaskIteration()
 
     const KnapsackProblemElement *criticalObject = foundCritcalObject ? &problemElements[subProblem->idObject] : nullptr;
 
+
     if (upperbound <= bound) {
         KnapsackResultClose *close = new KnapsackResultClose();
         clearSolution();
@@ -112,7 +113,7 @@ BranchBoundResult *Knapsack::computeTaskIteration()
     if (residualCapacity > 0)
     { // relaxed solution
         //cout << "upperbound is " << upperbound << " residual: " << residualCapacity << endl;
-
+    
         const int solutionWeigth = currentSolution->getSolutionWeigth();
         if ((solutionWeigth + criticalObject->weight) > knapsackTotalCapacity)
         {
