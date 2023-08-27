@@ -9,7 +9,7 @@ MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : MPIManag
 {
     MPI_Init(NULL, NULL);
     manager.commitDatatypes();
-    masterpoolManager = new TokenRingManager(manager);
+    masterpoolManager = new MasterpoolManager(manager);
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
     if (worldRank == 0)
