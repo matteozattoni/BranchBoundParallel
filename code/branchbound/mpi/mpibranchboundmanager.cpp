@@ -1,4 +1,5 @@
 #include "mpibranchboundmanager.h"
+#include "tokenringmanager.h"
 #include <iostream>
 #include <cmath>
 
@@ -8,7 +9,7 @@ MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : MPIManag
 {
     MPI_Init(NULL, NULL);
     manager.commitDatatypes();
-    masterpoolManager = new MasterpoolManager(manager);
+    masterpoolManager = new TokenRingManager(manager);
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
     if (worldRank == 0)

@@ -17,7 +17,6 @@ private:
     MPIDataManager &dataManager;
     int worldSize;
     int worldRank;
-    MPI_Comm workpoolComm;
     MPIManager *masterpoolManager;
     enum tagMessage { BRANCH, BRANCH_REQUEST, BOUND, TOKEN, TERMINATION};
     struct {
