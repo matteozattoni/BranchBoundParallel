@@ -109,10 +109,16 @@ BranchBoundResultBranch *WorkpoolManager::waitForBranch()
         if (tokenTermination.hasToken && isLocalTerminate())
             sendToken();
 
-        
+        BranchBoundResultBranch *b = nullptr;
 
-        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, workpoolComm, &status);
-        return getResultFromStatus(status);
+        while (b == nullptr)
+        {
+            MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, workpoolComm, &status);
+            b = getResultFromStatus(status);
+        }
+        return b;
+
+        
     }
 }
 
@@ -367,7 +373,7 @@ BranchBoundResultBranch *WorkpoolManager::getResultFromStatus(MPI_Status status)
             {
                 if(isLocalTerminate())
                     sendToken();
-                return waitForBranch();
+                return nullptr;
             }
         }
         break;
@@ -395,7 +401,7 @@ BranchBoundResultBranch *WorkpoolManager::getResultFromStatus(MPI_Status status)
             cacheLastBoundMessage = result;
             
         }
-        return waitForBranch();
+        return nullptr;
         break;
     }
     default:

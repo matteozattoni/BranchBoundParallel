@@ -128,16 +128,16 @@ BranchBoundResultBranch *MasterpoolManager::waitForBranch()
                     if (masterpoolRank == 0 && tokenTermination.nodeColor == nodeWhite && tokenTermination.tokenColor == tokenWhite)
                         throw MPIGlobalTerminationException();
                     sendToken();
-                    return waitForBranch();
                 }
             }
-
-            if (tokenTermination.hasToken)
-                sendToken();
-
-            MPI_Status status;
-            MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, masterpoolComm, &status);
-            return getResultFromStatus(status);
+            BranchBoundResultBranch *b = nullptr;
+            while (b == nullptr)
+            {
+                MPI_Status status;
+                MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, masterpoolComm, &status);
+                b = getResultFromStatus(status);
+            }
+            return b;
         }
     }
     catch (const std::exception &e)
@@ -411,7 +411,7 @@ BranchBoundResultBranch *MasterpoolManager::getResultFromStatus(MPI_Status statu
             {
                 if (isLocalTerminate())
                     sendToken();
-                return waitForBranch();
+                return nullptr;
             }
         }
         break;
@@ -439,7 +439,7 @@ BranchBoundResultBranch *MasterpoolManager::getResultFromStatus(MPI_Status statu
             cacheLastBoundMessage = result;
             
         }
-        return waitForBranch();
+        return nullptr;
         break;
     }
     default:
