@@ -308,8 +308,8 @@ int main()
 {    
     // test3();
     //runKnapsackSequential();
-
+    //return 0;
+    
     return runKnaspackParallel();
-    return 0;
     
 }

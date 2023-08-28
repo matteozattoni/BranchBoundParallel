@@ -9,6 +9,8 @@ class TokenRingManager: public MPIManager
 {
 private:
     double bound = 0.0;
+    MPI_Comm comm;
+    int numberWorkpool;
     int rank;
     int size;
     int nextRankToSend;
@@ -34,7 +36,7 @@ private:
         MPI_Request request;
     } tokenTermination;
     /* data */
-    std::vector<MPIMessage*> listOfMessage;
+    BranchBoundResultSolution *cacheLastBoundMessage = nullptr;
     BranchBoundResultBranch * returnBranchFromStatus(MPI_Status status);
     BranchBoundResultBranch* getResultFromStatus(MPI_Status status);
     bool isLocalTerminate();

@@ -1,0 +1,6 @@
+Comm World size: 3
+Start Branch & Bound parallel
+WORKPOOL (Node 0 size: 3) * Total: send: 60564 - recv: 60564
+MASTERPOOL (size 1) * Total send: 0 - recv: 0
+Final solution is 14390
+Total duration: 336s

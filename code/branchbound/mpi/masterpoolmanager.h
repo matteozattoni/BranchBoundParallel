@@ -5,6 +5,7 @@
 #include "workpoolmanager.h"
 #include "mpiexceptions.h"
 #include "mpimessage.h"
+#include "tokenringmanager.h"
 #include <vector>
 
 #define GLOBAL_MASTER_RANK 0
@@ -40,7 +41,14 @@ private:
         bool hasToken = false;
         MPI_Request request;
     } tokenTermination;
-    std::vector<MPIMessage*> listOfMessage;
+    struct {
+        int child;
+        MPI_Request request = MPI_REQUEST_NULL;
+        void* buffer;
+        int numElement;
+        bool mustBeSent;
+    } branchInitSent[2];
+    BranchBoundResultSolution *cacheLastBoundMessage = nullptr;
     void sendToken();
     BranchBoundResultBranch * returnBranchFromStatus(MPI_Status status);
     BranchBoundResultBranch* getResultFromStatus(MPI_Status status);

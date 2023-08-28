@@ -6,8 +6,8 @@ WorkpoolManager::WorkpoolManager(MPIDataManager &manager) : MPIManager(manager)
 {
     int worldRank;
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
-    const int myworkpool = worldRank / WORKPOOL_WORKER;
-    MPI_Comm_split(MPI_COMM_WORLD, myworkpool, worldRank, &workpoolComm);
+    numberWorkpool = worldRank / WORKPOOL_WORKER;
+    MPI_Comm_split(MPI_COMM_WORLD, numberWorkpool, worldRank, &workpoolComm);
     MPI_Comm_size(workpoolComm, &workpoolSize);
     MPI_Comm_rank(workpoolComm, &workpoolRank);
     receiveBound.boundBuffer = dataManager.getEmptybBoundBuff();
@@ -182,20 +182,9 @@ void WorkpoolManager::prologue(std::function<void(BranchBoundResult *)> callback
     if (workpoolSize < 2)
         return;
 
-    while (!listOfMessage.empty())
-    {
-        MPIMessage *message = listOfMessage.back();
-        if (message->tag == TAG_BOUND)
-        {
-            BranchBoundResultSolution *result = dataManager.getSolutionFromBound(message->buffer);
-            callback(result);
-            listOfMessage.pop_back();
-            delete message;
-        }
-        else
-        {
-            throw MPIUnimplementedException("MasterpoolManager::prologue: listOfMessage tag unhandled");
-        }
+    if (cacheLastBoundMessage != nullptr) {
+        callback(cacheLastBoundMessage);
+        cacheLastBoundMessage = nullptr;
     }
 
     // get bound messages if any
@@ -397,9 +386,15 @@ BranchBoundResultBranch *WorkpoolManager::getResultFromStatus(MPI_Status status)
         void *buffer = dataManager.getEmptybBoundBuff();
         MPI_Recv(buffer, 1, dataManager.getBoundType(), status.MPI_SOURCE, status.MPI_TAG, workpoolComm, MPI_STATUS_IGNORE);
         BranchBoundResultSolution *result = dataManager.getSolutionFromBound(buffer);
-        this->bound = std::max(this->bound, (double)result->getSolutionResult());
-        MPIMessage *message = new MPIMessage(buffer, 1, TAG_BOUND);
-        listOfMessage.push_back(message);
+        if (bound > result->getSolutionResult())
+            delete result;
+        else {
+            this->bound = std::max(this->bound, (double)result->getSolutionResult());
+            if (cacheLastBoundMessage != nullptr) 
+                delete cacheLastBoundMessage;
+            cacheLastBoundMessage = result;
+            
+        }
         return waitForBranch();
         break;
     }
@@ -474,8 +469,7 @@ void WorkpoolManager::terminate()
     MPI_Reduce(&totalSendBranch, &totalSend, 1, MPI_LONG, MPI_SUM, 0, workpoolComm);
 
     if (workpoolRank == 0) {
-        std::cout << "WORKPOOL * Total send are: " << totalSend << std::endl;
-        std::cout << "WORKPOOL * Total recv are: " << totalRecv << std::endl;
+        std::cout << "WORKPOOL (Node " <<  numberWorkpool << " size: " << workpoolSize << ") * Total: send: " << totalSend << " - recv: " << totalRecv <<  std::endl;
     }
 }
 

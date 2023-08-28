@@ -10,6 +10,7 @@ class WorkpoolManager: public MPIManager
 private:
     double bound=0.0;
     MPI_Comm workpoolComm;
+    int numberWorkpool;
     int workpoolRank;
     int workpoolSize;
     enum tagMessage { TAG_BOUND, TAG_BRANCH, TAG_TOKEN, TAG_TERMINATION};
@@ -39,7 +40,7 @@ private:
     void receiveBoundMessage(std::function<void(BranchBoundResult *)>);
     void sendToken();
     void loadBalance(std::function<void(BranchBoundResult*)>);
-    std::vector<MPIMessage*> listOfMessage;
+    BranchBoundResultSolution *cacheLastBoundMessage = nullptr;
     BranchBoundResultBranch* getResultFromStatus(MPI_Status status);
     bool isLocalTerminate();
     void checkTermination();

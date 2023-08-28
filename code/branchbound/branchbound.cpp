@@ -39,6 +39,8 @@ void BranchBound::start()
         // get bound from mpi if any
         while (!algorithm->hasCurrentBranch())
         { // check if algorith has current task, if dont wait for one or extract it from list
+            /* if ((++computation % 10000000) == 0)
+                std::cout << rank  << " reached " << computation << " set branch " << std::endl; */
             Branch *branch = getTaskFromQueue();
             if (branch != nullptr)
             { // fetched from queue
@@ -51,8 +53,10 @@ void BranchBound::start()
             {
                 // get task from mpi: wait
                 try
-                {        
+                {   
+                    //std::cout << rank << " start wait" << std::endl;     
                     BranchBoundResultBranch *resultBranch = mpiManager->waitForBranch();
+                    //std::cout << rank << " end wait" << std::endl;
                     Branch *array = resultBranch->getArrayBranch();
                     for (int i = 0; i < resultBranch->getNumberBranch(); i++)
                     {
@@ -173,8 +177,8 @@ void BranchBound::setBound(int bound)
 {    
     this->bound = bound;
     this->algorithm->setBound(bound);
-/*     if (rank==0) //debug
-        std::cout << "new bound: " << bound << std::endl; */
+/*     if (bound == 28919) //debug
+        std::cout << rank << " got the solution " << bound << std::endl; */
 }
 
 std::ostream &operator<<(std::ostream &out, const BranchBound &data)

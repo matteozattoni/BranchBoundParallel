@@ -1,5 +1,5 @@
 #include "seq_branchbound.h"
-
+#include <iostream>
 
 SequentialBranchBound::SequentialBranchBound(BranchBoundAlgorithm *algorithm)
 {

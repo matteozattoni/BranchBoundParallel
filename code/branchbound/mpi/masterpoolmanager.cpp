@@ -29,17 +29,12 @@ MasterpoolManager::MasterpoolManager(MPIDataManager &manager) : MPIManager(manag
         MPI_Comm_rank(masterpoolComm, &masterpoolRank);
         nextRankToSend = (masterpoolRank + 1) % masterpoolSize;
         tokenTermination.hasToken = masterpoolRank == 0 ? true : false;
-        if (masterpoolRank == 0)
-            std::cout << "Comm Master pool size: " << masterpoolSize << std::endl;
+        branchInitSent[0].child = (2 * masterpoolRank) + 1;
+        branchInitSent[0].mustBeSent = branchInitSent[0].child < (masterpoolSize);
+        branchInitSent[1].child = (2 * masterpoolRank) + 2;
+        branchInitSent[1].mustBeSent = branchInitSent[1].child < (masterpoolSize);
     }
     MPI_Group_free(&masterGroup);
-    /* std::cout << "World rank: " << worldRank; //debug
-    if (masterpoolComm == MPI_COMM_NULL)
-    {
-        std::cout << " - I'm NOT in master pool" << std::endl;
-    }
-    else
-        std::cout << " - I'm IN master pool! with rank: " << masterpoolRank << std::endl; */
     workpoolManager = new WorkpoolManager(manager);
 }
 
@@ -72,7 +67,7 @@ BranchBoundResultBranch *MasterpoolManager::getBranch()
     catch (const MPILocalTerminationException &e)
     {
 
-        if (masterpoolComm == MPI_COMM_NULL && masterpoolSize > 1)
+        if (masterpoolComm == MPI_COMM_NULL)
             throw MPILocalTerminationException();
 
         if (branchReceived.request != MPI_REQUEST_NULL && masterpoolSize > 1)
@@ -110,7 +105,6 @@ BranchBoundResultBranch *MasterpoolManager::waitForBranch()
     }
     catch (const MPILocalTerminationException &e)
     {
-
         try
         {
             return workpoolManager->waitForBranch();
@@ -138,7 +132,7 @@ BranchBoundResultBranch *MasterpoolManager::waitForBranch()
                 }
             }
 
-            if (tokenTermination.hasToken && isLocalTerminate())
+            if (tokenTermination.hasToken)
                 sendToken();
 
             MPI_Status status;
@@ -160,20 +154,9 @@ void MasterpoolManager::prologue(std::function<void(BranchBoundResult *)> callba
     if (masterpoolComm == MPI_COMM_NULL || masterpoolSize < 2)
         return;
 
-    while (!listOfMessage.empty())
-    {
-        MPIMessage *message = listOfMessage.back();
-        if (message->tag == BOUND)
-        {
-            BranchBoundResultSolution *result = dataManager.getSolutionFromBound(message->buffer);
-            callback(result);
-            listOfMessage.pop_back();
-            delete message;
-        }
-        else
-        {
-            throw MPIUnimplementedException("MasterpoolManager::prologue: listOfMessage tag unhandled");
-        }
+    if (cacheLastBoundMessage != nullptr) {
+        callback(cacheLastBoundMessage);
+        cacheLastBoundMessage = nullptr;
     }
 
     // BRANCH RECEIVED
@@ -227,6 +210,30 @@ void MasterpoolManager::epilogue(std::function<const Branch *()> callback)
     if (masterpoolComm == MPI_COMM_NULL || masterpoolSize < 2) {
         workpoolManager->epilogue(callback);
         return;
+    }
+
+    if (branchInitSent[0].mustBeSent)
+    {
+        const Branch *branchToSend = callback();
+        if (branchToSend != nullptr)
+        {
+            std::pair<void *, int> pairToSend = dataManager.getBranchBuffer(branchToSend);
+            MPI_Send(pairToSend.first, pairToSend.second, dataManager.getBranchType(), branchInitSent[0].child, BRANCH, masterpoolComm);
+            dataManager.sentFinished(pairToSend.first, pairToSend.second);
+            branchInitSent[0].mustBeSent = false;
+        }
+    }
+
+    if (branchInitSent[1].mustBeSent)
+    {
+        const Branch *branchToSend = callback();
+        if (branchToSend != nullptr)
+        {
+            std::pair<void *, int> pairToSend = dataManager.getBranchBuffer(branchToSend);
+            MPI_Send(pairToSend.first, pairToSend.second, dataManager.getBranchType(), branchInitSent[1].child, BRANCH, masterpoolComm);
+            dataManager.sentFinished(pairToSend.first, pairToSend.second);
+            branchInitSent[1].mustBeSent = false;
+        }
     }
         
 
@@ -423,10 +430,15 @@ BranchBoundResultBranch *MasterpoolManager::getResultFromStatus(MPI_Status statu
         void *buffer = dataManager.getEmptybBoundBuff();
         MPI_Recv(buffer, 1, dataManager.getBoundType(), status.MPI_SOURCE, status.MPI_TAG, masterpoolComm, MPI_STATUS_IGNORE);
         BranchBoundResultSolution *result = dataManager.getSolutionFromBound(buffer);
-        // std::cout << "final bound: " << result->getSolutionResult() << std::endl;
-        MPIMessage *message = new MPIMessage(buffer, 1, BOUND);
-        this->bound = std::max(this->bound, (double)result->getSolutionResult());
-        listOfMessage.push_back(message);
+        if (bound > result->getSolutionResult())
+            delete result;
+        else {
+            this->bound = std::max(this->bound, (double)result->getSolutionResult());
+            if (cacheLastBoundMessage != nullptr) 
+                delete cacheLastBoundMessage;
+            cacheLastBoundMessage = result;
+            
+        }
         return waitForBranch();
         break;
     }
@@ -461,8 +473,7 @@ void MasterpoolManager::terminate() {
     MPI_Reduce(&totalSendBranch, &totalSend, 1, MPI_LONG, MPI_SUM, 0, masterpoolComm);
 
     if (masterpoolRank == 0) {
-        std::cout << "MASTERPOOL * Total send are: " << totalSend << std::endl;
-        std::cout << "MASTERPOOL * Total recv are: " << totalRecv << std::endl;
+        std::cout << "MASTERPOOL (size "  << masterpoolSize  << ") * Total send: " << totalSend << " - recv: " << totalRecv << std::endl;
     }
     
 }

@@ -15,6 +15,7 @@ private:
     // memory manager?
     std::list<Branch*> list; // list of task
     // Algorithm
+    // long computation = 0;
     BranchBoundAlgorithm* algorithm;
     MPIBranchBoundManager* mpiManager;
     int worldRank;

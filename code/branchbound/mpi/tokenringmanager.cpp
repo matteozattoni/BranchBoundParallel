@@ -3,10 +3,15 @@
 
 TokenRingManager::TokenRingManager(MPIDataManager &manager) : MPIManager(manager)
 {
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    nextRankToSend = (rank + 1) % size;
+    int worldRank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+    numberWorkpool = worldRank / WORKPOOL_WORKER;
+    MPI_Comm_split(MPI_COMM_WORLD, numberWorkpool, worldRank, &comm);
+    MPI_Comm_size(comm, &size);
+    MPI_Comm_rank(comm, &rank);
     tokenTermination.hasToken = rank == 0;
+    nextRankToSend = (rank + 1) % size;
+    std::cout << "world rank: " << worldRank << " tokenpool " << numberWorkpool << " rank in this pool " << rank << " next rank to send: " << nextRankToSend << std::endl;
 }
 
 TokenRingManager::~TokenRingManager()
@@ -26,54 +31,58 @@ Branch *TokenRingManager::getRootBranch()
 
 void TokenRingManager::prologue(std::function<void(BranchBoundResult *)> callback)
 {
-    while (!listOfMessage.empty())
-    {
-        MPIMessage *message = listOfMessage.back();
-        if (message->tag == BOUND)
-        {
-            BranchBoundResultSolution *result = dataManager.getSolutionFromBound(message->buffer);
-            callback(result);
-            listOfMessage.pop_back();
-            delete message;
-        }
-        else
-        {
-            throw MPIUnimplementedException("MasterpoolManager::prologue: listOfMessage tag unhandled");
-        }
+    if (rank == 1 && numberWorkpool == 1)
+        std::cout << "rank 3 prologue" << std::endl;
+    if (size < 2)
+        return;
+
+    if (cacheLastBoundMessage != nullptr) {
+        callback(cacheLastBoundMessage);
+        cacheLastBoundMessage = nullptr;
     }
+
     // BRANCH RECEIVED
     if (branchReceived.request == MPI_REQUEST_NULL)
     {
         int isBranchIncoming;
         MPI_Status status;
-        MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, MPI_COMM_WORLD, &isBranchIncoming, &status);
+        MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, comm, &isBranchIncoming, &status);
         if (isBranchIncoming)
         {
+            if (rank == 1 && numberWorkpool == 1)
+                std::cout << "got branch" << std::endl;
             int countElem;
             MPI_Get_count(&status, dataManager.getBranchType(), &countElem);
             if (countElem == MPI_UNDEFINED)
                 throw MPIGeneralException("MasterpoolManager::prologue - MPI_Get_count return MPI_UNDEFINED");
             branchReceived.buffer = dataManager.getEmptyBranchElementBuff(countElem);
             branchReceived.numElement = countElem;
-            MPI_Irecv(branchReceived.buffer, countElem, dataManager.getBranchType(), status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, &branchReceived.request);
+            MPI_Irecv(branchReceived.buffer, countElem, dataManager.getBranchType(), status.MPI_SOURCE, status.MPI_TAG, comm, &branchReceived.request);
         }
     }
 
     int isBoundIncoming;
     MPI_Status status;
-    MPI_Iprobe(MPI_ANY_SOURCE, BOUND, MPI_COMM_WORLD, &isBoundIncoming, &status);
+    MPI_Iprobe(MPI_ANY_SOURCE, BOUND, comm, &isBoundIncoming, &status);
     while (isBoundIncoming)
     {
+        if (rank == 1 && numberWorkpool == 1)
+                std::cout << "got bound" << std::endl;
         void *buffer = dataManager.getEmptybBoundBuff();
-        MPI_Recv(buffer, 1, dataManager.getBoundType(), status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(buffer, 1, dataManager.getBoundType(), status.MPI_SOURCE, status.MPI_TAG, comm, MPI_STATUS_IGNORE);
         BranchBoundResultSolution *result = dataManager.getSolutionFromBound(buffer);
         callback(result);
-        MPI_Iprobe(MPI_ANY_SOURCE, BOUND, MPI_COMM_WORLD, &isBoundIncoming, &status);
+        MPI_Iprobe(MPI_ANY_SOURCE, BOUND, comm, &isBoundIncoming, &status);
     }
 }
 
 void TokenRingManager::epilogue(std::function<const Branch *()> callback)
 {
+    if (rank == 1 && numberWorkpool == 1)
+        std::cout << "rank 3 epilogue" << std::endl;
+    if (size < 2)
+        return;
+    
     if (branchSent.request == MPI_REQUEST_NULL)
     {
         const Branch *branch = callback();
@@ -83,7 +92,9 @@ void TokenRingManager::epilogue(std::function<const Branch *()> callback)
             branchSent.buffer = pairToSend.first;
             branchSent.numElement = pairToSend.second;
             totalSendBranch++;
-            MPI_Issend(branchSent.buffer, branchSent.numElement, dataManager.getBranchType(), nextRankToSend, BRANCH, MPI_COMM_WORLD, &branchSent.request);
+            if (rank == 0 && numberWorkpool == 1)
+                std::cout << rank << " branch sent" << std::endl;
+            MPI_Issend(branchSent.buffer, branchSent.numElement, dataManager.getBranchType(), nextRankToSend, BRANCH, comm, &branchSent.request);
             tokenTermination.nodeColor = nodeBlack;
         }
     }
@@ -102,7 +113,9 @@ void TokenRingManager::epilogue(std::function<const Branch *()> callback)
                 branchSent.buffer = pairToSend.first;
                 branchSent.numElement = pairToSend.second;
                 totalSendBranch++;
-                MPI_Issend(branchSent.buffer, branchSent.numElement, dataManager.getBranchType(), nextRankToSend, BRANCH, MPI_COMM_WORLD, &branchSent.request);
+                if (rank == 0 && numberWorkpool == 1)
+                    std::cout << rank << " branch sent" << std::endl;
+                MPI_Issend(branchSent.buffer, branchSent.numElement, dataManager.getBranchType(), nextRankToSend, BRANCH, comm, &branchSent.request);
                 tokenTermination.nodeColor = nodeBlack;
             }
         }
@@ -125,27 +138,21 @@ BranchBoundResultBranch *TokenRingManager::getBranch()
         }
     }
 
-    if (branchReceived.request == MPI_REQUEST_NULL && size > 1)
-    {
-        int isRecvIncoming;
-        MPI_Status status;
-        MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, MPI_COMM_WORLD, &isRecvIncoming, &status);
-        if (isRecvIncoming)
-            return returnBranchFromStatus(status);
-    }
-
     throw MPILocalTerminationException();
 }
 
 BranchBoundResultBranch *TokenRingManager::waitForBranch()
 {
+    if (rank == 1 && numberWorkpool == 1)
+        std::cout << "rank 3 wait for branch" << std::endl;
     if (size < 2)
         throw MPIGlobalTerminationException();
+    
     if (tokenTermination.hasToken)
     {
         int isBranchIncoming;
         MPI_Status status;
-        MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, MPI_COMM_WORLD, &isBranchIncoming, &status);
+        MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, comm, &isBranchIncoming, &status);
         if (isBranchIncoming)
         {
             return returnBranchFromStatus(status);
@@ -159,11 +166,9 @@ BranchBoundResultBranch *TokenRingManager::waitForBranch()
         }
     }
 
-    if (tokenTermination.hasToken && isLocalTerminate())
-        sendToken();
-
     MPI_Status status;
-    MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    std::cout << rank << " before probe has token ring: " << (tokenTermination.hasToken ? "true" : "false") << std::endl;
+    MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, comm, &status);
     return getResultFromStatus(status);
 }
 
@@ -179,7 +184,7 @@ void TokenRingManager::sendBound(BranchBoundResultSolution *bound)
         return;
 
     std::pair<void *, int> pairToSend = dataManager.getBoundBuffer(bound);
-    MPI_Send(pairToSend.first, pairToSend.second, dataManager.getBoundType(), nextRankToSend, BOUND, MPI_COMM_WORLD);
+    MPI_Send(pairToSend.first, pairToSend.second, dataManager.getBoundType(), nextRankToSend, BOUND, comm);
 }
 
 BranchBoundResultBranch *TokenRingManager::returnBranchFromStatus(MPI_Status status)
@@ -189,7 +194,7 @@ BranchBoundResultBranch *TokenRingManager::returnBranchFromStatus(MPI_Status sta
     if (count == MPI_UNDEFINED)
         throw MPIGeneralException("MasterpoolManager::returnBranchFromStatus get_count return MPI_UNDEFINED");
     void *buffBranch = dataManager.getEmptyBranchElementBuff(count);
-    MPI_Recv(buffBranch, count, dataManager.getBranchType(), status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, &status);
+    MPI_Recv(buffBranch, count, dataManager.getBranchType(), status.MPI_SOURCE, status.MPI_TAG, comm, &status);
     BranchBoundResultBranch *branch = dataManager.getBranchFromBuff(buffBranch, count);
     totalRecvBranch++;
     return branch;
@@ -197,6 +202,8 @@ BranchBoundResultBranch *TokenRingManager::returnBranchFromStatus(MPI_Status sta
 
 BranchBoundResultBranch *TokenRingManager::getResultFromStatus(MPI_Status status)
 {
+    if (rank == 1 && numberWorkpool == 1)
+        std::cout << "rank 3 got messsage " << status.MPI_TAG << std::endl;
     switch (status.MPI_TAG)
     {
     case BRANCH:
@@ -218,15 +225,16 @@ BranchBoundResultBranch *TokenRingManager::getResultFromStatus(MPI_Status status
             return result;
         }
 
-        MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, MPI_COMM_WORLD, &isBranchIncoming, &branchStatus);
+        MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, comm, &isBranchIncoming, &branchStatus);
         if (isBranchIncoming)
         { // there is some branch
             return returnBranchFromStatus(branchStatus);
         }
         else
         { // nothing incoming we take the token
-            MPI_Recv(&tokenTermination.tokenColor, 1, MPI_INT, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&tokenTermination.tokenColor, 1, MPI_INT, status.MPI_SOURCE, status.MPI_TAG, comm, MPI_STATUS_IGNORE);
             tokenTermination.hasToken = true;
+            std::cout << rank << " tokenring token " << std::endl;
             if (rank == 0 && tokenTermination.tokenColor == tokenWhite)
             {                                            // global termination
                 if (!isLocalTerminate())
@@ -234,7 +242,7 @@ BranchBoundResultBranch *TokenRingManager::getResultFromStatus(MPI_Status status
                 for (int i = 1; i < size; i++) // ignore the first root
                 {
                     int termination = 1;
-                    MPI_Send(&termination, 1, MPI_INT, i, TERMINATION, MPI_COMM_WORLD);
+                    MPI_Send(&termination, 1, MPI_INT, i, TERMINATION, comm);
                 }
                 throw MPIGlobalTerminationException();
             }
@@ -250,19 +258,24 @@ BranchBoundResultBranch *TokenRingManager::getResultFromStatus(MPI_Status status
     case TERMINATION:
     {
         int termination;
-        MPI_Recv(&termination, 1, MPI_INT, status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&termination, 1, MPI_INT, status.MPI_SOURCE, status.MPI_TAG, comm, MPI_STATUS_IGNORE);
         throw MPIGlobalTerminationException();
         break;
     }
     case BOUND:
     {
         void *buffer = dataManager.getEmptybBoundBuff();
-        MPI_Recv(buffer, 1, dataManager.getBoundType(), status.MPI_SOURCE, status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(buffer, 1, dataManager.getBoundType(), status.MPI_SOURCE, status.MPI_TAG, comm, MPI_STATUS_IGNORE);
         BranchBoundResultSolution *result = dataManager.getSolutionFromBound(buffer);
-        // std::cout << "final bound: " << result->getSolutionResult() << std::endl;
-        MPIMessage *message = new MPIMessage(buffer, 1, BOUND);
-        this->bound = std::max(this->bound, (double)result->getSolutionResult());
-        listOfMessage.push_back(message);
+        if (bound > result->getSolutionResult())
+            delete result;
+        else {
+            this->bound = std::max(this->bound, (double)result->getSolutionResult());
+            if (cacheLastBoundMessage != nullptr) 
+                delete cacheLastBoundMessage;
+            cacheLastBoundMessage = result;
+            
+        }
         return waitForBranch();
         break;
     }
@@ -283,17 +296,17 @@ bool TokenRingManager::isLocalTerminate() {
 void TokenRingManager::sendToken()
 {
     if (!tokenTermination.hasToken)
-        return;
+        throw 1;
 
 
     tokenTermination.tokenColor = rank == 0 && tokenTermination.nodeColor == nodeWhite ? tokenWhite : tokenTermination.tokenColor;
 
     if (tokenTermination.nodeColor == nodeWhite)
-        MPI_Send(&tokenTermination.tokenColor, 1, MPI_INT, nextRankToSend, TOKEN, MPI_COMM_WORLD);
+        MPI_Send(&tokenTermination.tokenColor, 1, MPI_INT, nextRankToSend, TOKEN, comm);
     else
     {
         tokenTermination.tokenColor = tokenBlack;
-        MPI_Send(&tokenTermination.tokenColor, 1, MPI_INT, nextRankToSend, TOKEN, MPI_COMM_WORLD);
+        MPI_Send(&tokenTermination.tokenColor, 1, MPI_INT, nextRankToSend, TOKEN, comm);
     }
     tokenTermination.nodeColor = nodeWhite;
     tokenTermination.hasToken = false;
@@ -304,7 +317,7 @@ void TokenRingManager::checkTermination()
 {
     int someMessage;
     MPI_Status status;
-    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &someMessage, &status);
+    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, comm, &someMessage, &status);
     if (someMessage && status.MPI_TAG == BRANCH)
         std::cout << "There is some branch message before deallocating Mastermanager" << std::endl;
     if (branchReceived.request != MPI_REQUEST_NULL)
