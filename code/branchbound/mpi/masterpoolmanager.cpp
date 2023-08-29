@@ -70,6 +70,8 @@ BranchBoundResultBranch *MasterpoolManager::getBranch()
         if (masterpoolComm == MPI_COMM_NULL)
             throw MPILocalTerminationException();
 
+        std::list<Branch*> branches;
+
         if (branchReceived.request != MPI_REQUEST_NULL && masterpoolSize > 1)
         {
             int isRecvFinished;
@@ -77,10 +79,10 @@ BranchBoundResultBranch *MasterpoolManager::getBranch()
             MPI_Test(&branchReceived.request, &isRecvFinished, &status);
             if (isRecvFinished)
             {
-                BranchBoundResultBranch *result = dataManager.getBranchFromBuff(branchReceived.buffer, branchReceived.numElement);
+                Branch* branch = dataManager.getBranchFromBuff(branchReceived.buffer, branchReceived.numElement);
+                branches.push_front(branch);
                 totalRecvBranch++;
                 branchReceived.request = MPI_REQUEST_NULL;
-                return result;
             }
         }
 
@@ -89,10 +91,17 @@ BranchBoundResultBranch *MasterpoolManager::getBranch()
             int isRecvIncoming;
             MPI_Status status;
             MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, masterpoolComm, &isRecvIncoming, &status);
-            if (isRecvIncoming)
-                return returnBranchFromStatus(status);
+            if (isRecvIncoming) {
+                Branch* branch = returnBranchFromStatus(status);
+                branches.push_front(branch);
+            }
+                
         }
-
+        if (branches.size() > 0) {
+            BranchBoundResultBranch *result = dataManager.getBranchResultFromBranches(branches);
+            return result;
+        }
+        
         throw MPILocalTerminationException();
     }
 }
@@ -116,28 +125,20 @@ BranchBoundResultBranch *MasterpoolManager::waitForBranch()
 
             if (tokenTermination.hasToken)
             {
-                int isBranchIncoming;
-                MPI_Status status;
-                MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, masterpoolComm, &isBranchIncoming, &status);
-                if (isBranchIncoming)
-                {
-                    return returnBranchFromStatus(status);
-                }
-                else
-                {
                     if (masterpoolRank == 0 && tokenTermination.nodeColor == nodeWhite && tokenTermination.tokenColor == tokenWhite)
                         throw MPIGlobalTerminationException();
                     sendToken();
-                }
+                
             }
-            BranchBoundResultBranch *b = nullptr;
+            Branch *b = nullptr;
             while (b == nullptr)
             {
                 MPI_Status status;
                 MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, masterpoolComm, &status);
-                b = getResultFromStatus(status);
+                b = getBranchFromGeneralStatus(status);
             }
-            return b;
+            BranchBoundResultBranch *result = dataManager.getBranchResultFromBranches({b});
+            return result;
         }
     }
     catch (const std::exception &e)
@@ -277,7 +278,7 @@ void MasterpoolManager::epilogue(std::function<const Branch *()> callback)
 void MasterpoolManager::sendBound(BranchBoundResultSolution *bound)
 {
     workpoolManager->sendBound(bound);
-    
+
     if (this->bound >= bound->getSolutionResult())
         return;
 
@@ -317,7 +318,7 @@ double MasterpoolManager::getBound()
     return bound;
 }
 
-BranchBoundResultBranch *MasterpoolManager::returnBranchFromStatus(MPI_Status status)
+Branch* MasterpoolManager::returnBranchFromStatus(MPI_Status status)
 {
     int count;
     MPI_Get_count(&status, dataManager.getBranchType(), &count);
@@ -325,7 +326,7 @@ BranchBoundResultBranch *MasterpoolManager::returnBranchFromStatus(MPI_Status st
         throw MPIGeneralException("MasterpoolManager::returnBranchFromStatus get_count return MPI_UNDEFINED");
     void *buffBranch = dataManager.getEmptyBranchElementBuff(count);
     MPI_Recv(buffBranch, count, dataManager.getBranchType(), status.MPI_SOURCE, status.MPI_TAG, masterpoolComm, &status);
-    BranchBoundResultBranch *branch = dataManager.getBranchFromBuff(buffBranch, count);
+    Branch *branch = dataManager.getBranchFromBuff(buffBranch, count);
     totalRecvBranch++;
     return branch;
 }
@@ -357,7 +358,7 @@ void MasterpoolManager::checkTermination()
     }
 }
 
-BranchBoundResultBranch *MasterpoolManager::getResultFromStatus(MPI_Status status)
+Branch* MasterpoolManager::getBranchFromGeneralStatus(MPI_Status status)
 {
     switch (status.MPI_TAG)
     {
@@ -374,10 +375,10 @@ BranchBoundResultBranch *MasterpoolManager::getResultFromStatus(MPI_Status statu
         if (branchReceived.request != MPI_REQUEST_NULL)
         {
             MPI_Test(&branchReceived.request, &isBranchReceived, &branchStatus);
-            BranchBoundResultBranch *result = dataManager.getBranchFromBuff(branchReceived.buffer, branchReceived.numElement);
+            Branch *branch = dataManager.getBranchFromBuff(branchReceived.buffer, branchReceived.numElement);
             totalRecvBranch++;
             branchReceived.request = MPI_REQUEST_NULL;
-            return result;
+            return branch;
         }
 
         MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, masterpoolComm, &isBranchIncoming, &branchStatus);

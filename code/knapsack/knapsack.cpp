@@ -131,7 +131,7 @@ BranchBoundResult *Knapsack::computeTaskIteration()
             KnapsackBranch *newBranch = new KnapsackBranch(size + 1, size + 1, solutionBuffer);
 
             currentSolution->addObjectToSolution(idCriticalObject, true, criticalObject->profit, criticalObject->weight);
-            KnapsackResultBranch *resultBranch = new KnapsackResultBranch(newBranch, 1);
+            KnapsackResultBranch *resultBranch = new KnapsackResultBranch({newBranch});
             return resultBranch;
         }
     }

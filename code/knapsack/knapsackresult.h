@@ -29,15 +29,15 @@ class KnapsackResultBranch: public BranchBoundResultBranch
 private:
     /* data */
 public:
-    static AllocatorFixedMemoryPool<KnapsackResultBranch> *memoryManager;
+    static AllocatorFixedMemoryPool<KnapsackResultBranch> *branchResultManager;
     static std::ostream& printMemoryRecap(std::ostream &out) {
-        out << *memoryManager;
+        out << *branchResultManager;
         return out;
     };
     void * operator new(size_t size);
     void * operator new(size_t size, void* ptr);
     void operator delete(void * p);
-    KnapsackResultBranch(Branch* branches, int number);
+    KnapsackResultBranch(std::list<Branch*> branches);
     ~KnapsackResultBranch();
 };
 

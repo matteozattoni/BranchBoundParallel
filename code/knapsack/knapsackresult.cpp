@@ -23,14 +23,14 @@ int KnapsackResultSolution::getSolutionResult() const {
     return profitSolution;
 }
 
-AllocatorFixedMemoryPool<KnapsackResultBranch>* KnapsackResultBranch::memoryManager = new AllocatorFixedMemoryPool<KnapsackResultBranch>();
+AllocatorFixedMemoryPool<KnapsackResultBranch>* KnapsackResultBranch::branchResultManager = new AllocatorFixedMemoryPool<KnapsackResultBranch>();
 
-KnapsackResultBranch::KnapsackResultBranch(Branch* branches, int number): BranchBoundResultBranch(branches, number) {}
+KnapsackResultBranch::KnapsackResultBranch(std::list<Branch*> listOfBranch): BranchBoundResultBranch(listOfBranch) {}
 
 KnapsackResultBranch::~KnapsackResultBranch() {}
 
 void* KnapsackResultBranch::operator new(size_t size) {
-    void* ptr = KnapsackResultBranch::memoryManager->allocate();
+    void* ptr = KnapsackResultBranch::branchResultManager->allocate();
     return ptr;
 }
 
@@ -39,7 +39,7 @@ void* KnapsackResultBranch::operator new(size_t size, void* ptr) {
 }
 
 void KnapsackResultBranch::operator delete(void* ptr) {
-    KnapsackResultBranch::memoryManager->deallocate((KnapsackResultBranch*)ptr);
+    KnapsackResultBranch::branchResultManager->deallocate((KnapsackResultBranch*)ptr);
 }
 
 

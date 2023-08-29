@@ -50,14 +50,11 @@ void SequentialBranchBound::newBranchBoundResult(BranchBoundResult* result) {
     }
     case ResultBranch:
     {
-        BranchBoundResultBranch *resultBranch = static_cast<BranchBoundResultBranch *>(result);
-        Branch *array = resultBranch->getArrayBranch();
-        for (int i = 0; i < resultBranch->getNumberBranch(); i++)
-        {
-            Branch *branch = &array[i];
-
-            list.push_front(branch);
+        BranchBoundResultBranch *resultBranch = dynamic_cast<BranchBoundResultBranch *>(result);
+        for(Branch* b : resultBranch->getListBranch()) {
+            list.push_front(b);
         }
+
         delete resultBranch;
         break;
     }

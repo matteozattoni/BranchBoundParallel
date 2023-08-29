@@ -280,7 +280,11 @@ void KnapsackMemoryManager::sentFinished(void* buff, int count) {
     //delete elements;
 }
 
-BranchBoundResultBranch* KnapsackMemoryManager::getBranchFromBuff(void* buff, int count) {
+BranchBoundResultBranch* KnapsackMemoryManager::getBranchResultFromBranches(std::list<Branch*> branches) {
+    return new KnapsackResultBranch(branches);
+}
+
+Branch* KnapsackMemoryManager::getBranchFromBuff(void* buff, int count) {
     struct branchElementStruct
     {
         void *ptrVirtualTable;
@@ -297,8 +301,10 @@ BranchBoundResultBranch* KnapsackMemoryManager::getBranchFromBuff(void* buff, in
     }
     KnapsackBranchElement* elements = (KnapsackBranchElement*) buff;
     KnapsackBranch* branch = new KnapsackBranch(count, elements);
-    return new KnapsackResultBranch(branch, 1);
+    return branch;
 }
+
+
 
 
 void KnapsackMemoryManager::testProblemMemory()

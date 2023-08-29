@@ -50,8 +50,8 @@ private:
     } branchInitSent[2];
     BranchBoundResultSolution *cacheLastBoundMessage = nullptr;
     void sendToken();
-    BranchBoundResultBranch * returnBranchFromStatus(MPI_Status status);
-    BranchBoundResultBranch* getResultFromStatus(MPI_Status status);
+    Branch* returnBranchFromStatus(MPI_Status status);
+    Branch* getBranchFromGeneralStatus(MPI_Status status);
     bool isLocalTerminate();
     void checkTermination();
 public:

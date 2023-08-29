@@ -129,13 +129,18 @@ BranchBoundResultBranch *TokenRingManager::getBranch()
         int isRecvFinished;
         MPI_Status status;
         MPI_Test(&branchReceived.request, &isRecvFinished, &status);
+        
         if (isRecvFinished)
         {
-            BranchBoundResultBranch *result = dataManager.getBranchFromBuff(branchReceived.buffer, branchReceived.numElement);
+            std::list<Branch*> branches;
+            Branch* branch = dataManager.getBranchFromBuff(branchReceived.buffer, branchReceived.numElement);
+            branches.push_front(branch);
+            BranchBoundResultBranch *result = dataManager.getBranchResultFromBranches(branches);
             totalRecvBranch++;
             branchReceived.request = MPI_REQUEST_NULL;
             return result;
         }
+
     }
 
     throw MPILocalTerminationException();
@@ -195,9 +200,9 @@ BranchBoundResultBranch *TokenRingManager::returnBranchFromStatus(MPI_Status sta
         throw MPIGeneralException("MasterpoolManager::returnBranchFromStatus get_count return MPI_UNDEFINED");
     void *buffBranch = dataManager.getEmptyBranchElementBuff(count);
     MPI_Recv(buffBranch, count, dataManager.getBranchType(), status.MPI_SOURCE, status.MPI_TAG, comm, &status);
-    BranchBoundResultBranch *branch = dataManager.getBranchFromBuff(buffBranch, count);
+    Branch *branch = dataManager.getBranchFromBuff(buffBranch, count);
     totalRecvBranch++;
-    return branch;
+    return dataManager.getBranchResultFromBranches({branch});
 }
 
 BranchBoundResultBranch *TokenRingManager::getResultFromStatus(MPI_Status status)
@@ -219,7 +224,7 @@ BranchBoundResultBranch *TokenRingManager::getResultFromStatus(MPI_Status status
         if (branchReceived.request != MPI_REQUEST_NULL)
         {
             MPI_Test(&branchReceived.request, &isBranchReceived, &branchStatus);
-            BranchBoundResultBranch *result = dataManager.getBranchFromBuff(branchReceived.buffer, branchReceived.numElement);
+            BranchBoundResultBranch *result = dataManager.getBranchResultFromBranches({dataManager.getBranchFromBuff(branchReceived.buffer, branchReceived.numElement)});
             totalRecvBranch++;
             branchReceived.request = MPI_REQUEST_NULL;
             return result;

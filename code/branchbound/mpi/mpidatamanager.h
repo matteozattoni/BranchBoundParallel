@@ -4,6 +4,7 @@
 #include "../algorithm/branchboundproblem.h"
 #include "../algorithm/branchboundresult.h"
 #include <utility>
+#include <list>
 #include <mpi.h>
 
 
@@ -42,7 +43,8 @@ public:
     // RECV
     virtual void* getEmptyBranchElementBuff(int count)=0;
 
-    virtual BranchBoundResultBranch* getBranchFromBuff(void* buff, int count)=0;
+    virtual Branch* getBranchFromBuff(void* buff, int count) =0;
+    virtual BranchBoundResultBranch* getBranchResultFromBranches(std::list<Branch*> branches)=0;
     
     // SEND
     virtual std::pair<void*,int> getBranchBuffer(const Branch* branch)=0;

@@ -2,6 +2,8 @@
 #define BRANCHBOUND_H
 
 #include <list>
+#include <queue>
+#include <vector>
 #include <ostream>
 
 #include "algorithm/branchboundalgorithm.h"
@@ -12,8 +14,12 @@
 class BranchBound
 {
 private:
+    struct cmp
+    {
+        bool operator()(const Branch *x, const Branch *y) const { return x->getNumberOfElements() > y->getNumberOfElements(); }
+    };
     // memory manager?
-    std::list<Branch*> list; // list of task
+    std::set<Branch*, cmp> branchSet;
     // Algorithm
     // long computation = 0;
     BranchBoundAlgorithm* algorithm;

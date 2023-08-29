@@ -36,12 +36,13 @@ private:
         void* boundBuffer;
         MPI_Request request;
     } receiveBound;
-    BranchBoundResultBranch* returnBranchFromStatus(MPI_Status status);
+    Branch* getBranchFromStatus(MPI_Status status);
+    Branch* getBranchFromGeneralStatus(MPI_Status status);
     void receiveBoundMessage(std::function<void(BranchBoundResult *)>);
     void sendToken();
     void loadBalance(std::function<void(BranchBoundResult*)>);
     BranchBoundResultSolution *cacheLastBoundMessage = nullptr;
-    BranchBoundResultBranch* getResultFromStatus(MPI_Status status);
+    
     bool isLocalTerminate();
     void checkTermination();
     /* data */

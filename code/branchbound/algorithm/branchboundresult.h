@@ -2,6 +2,7 @@
 #define BRANCHBOUNDRESULT
 
 #include "branchboundbranch.h"
+#include <list>
 
 enum eBranchBoundResultType { Solution, ResultBranch, Closed };
 
@@ -30,16 +31,15 @@ public:
 
 class BranchBoundResultBranch: public BranchBoundResult
 {
-private:
-    Branch* branches;
-    int numberOfBranch;
+protected:
+    const std::list<Branch*> branches;
     /* data */
 public:
-    BranchBoundResultBranch(Branch* b,int n): branches(b), numberOfBranch(n) {}
+    BranchBoundResultBranch(std::list<Branch*> listOfBranch): branches(listOfBranch) {}
     virtual ~BranchBoundResultBranch() {};
     eBranchBoundResultType getResultType() const override {return ResultBranch;};
-    int getNumberBranch() const {return numberOfBranch;}
-    Branch* getArrayBranch() const { return branches;}
+    int getNumberBranch() const {return branches.size();}
+    const std::list<Branch*> getListBranch() const { return branches;}
 };
 
 class BranchBoundResultClosed: public BranchBoundResult
