@@ -128,7 +128,7 @@ BranchBoundResultBranch *MPIBranchBoundManager::waitForBranch()
     }
     catch (const MPIGlobalTerminationException &e) // Workpool and Masterpool reached Local Termination
     {
-        cout << worldRank << "Termination" << endl;
+        //cout << worldRank << "Termination" << endl;
         // std::cout << "(" << worldRank <<" ) TERMINATED" << std::endl;
         terminate();
         int64_t commTime;
