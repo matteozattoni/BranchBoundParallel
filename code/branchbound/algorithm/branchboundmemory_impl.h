@@ -8,6 +8,7 @@
 #include <ostream>
 
 #define MAXCHUNKSIZE 500000000 // 500 MB
+#define MAXARRAYCHUNKSIZE 1000000000 // 1 GB
 
 template <class T>
 class AllocatorFixedMemoryPool
@@ -157,6 +158,15 @@ public:
         newChunk->pointer = ptr;
         newChunk->sizeMemoryHeap = size;
         freeArrays.insert(newChunk);
+        if (sizeAllocated > MAXARRAYCHUNKSIZE) {
+            for(_ChunkArray *chunk: freeArrays) {
+                T* ptr = chunk->pointer;
+                free(ptr);
+                poolChunk.deallocate(chunk);
+                pointerSize.erase(ptr);
+            }
+            freeArrays.clear();
+        }
     }
     size_t getTotalSizeAllocated() const
     {
