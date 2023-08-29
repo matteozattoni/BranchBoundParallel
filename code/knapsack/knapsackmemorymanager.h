@@ -33,7 +33,7 @@
 
 #define CORR_TEST "datasets/large/knapPI_3_test" // ??
 
-#define FILEPATH CORR_DATASET3
+#define FILEPATH CORR_DATASET4
 
 class KnapsackMemoryManager: public MPIDataManager
 {
@@ -87,7 +87,8 @@ KnapsackMemoryManager(/* args */);
     // SEND
     std::pair<void*,int> getBranchBuffer(const Branch* branch) override;
     void sentFinished(void* buff, int count) override;
-    BranchBoundResultBranch* getBranchFromBuff(void* buff, int count) override;
+    BranchBoundResultBranch* getBranchResultFromBranches(std::list<Branch*> branches) override;
+    Branch* getBranchFromBuff(void* buff, int count) override;
 };
 
 #endif
