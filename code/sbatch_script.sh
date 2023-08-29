@@ -7,7 +7,8 @@
 #SBATCH --partition=broadwell
 #
 # Number of nodes needed for use case:
-#SBATCH -n 36
+#SBATCH -n 360
+## SBATCH -N4 --ntasks-per-node=32
 #
 # Wall clock limit 4 hours:
 ## SBATCH --time=00:30:00
