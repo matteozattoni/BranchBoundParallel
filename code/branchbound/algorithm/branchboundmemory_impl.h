@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <ostream>
 
+#define MAXCHUNKSIZE 1000000000 // 1 GB
+
 template <class T>
 class AllocatorFixedMemoryPool
 {
@@ -43,6 +45,12 @@ public:
     void deallocate(T *ptr)
     {
         allocateList.push_front(ptr);
+        if (allocateList.size() * sizeof(T) > MAXCHUNKSIZE) {
+            for (T* ptr : allocateList) {
+                free((void*)ptr);
+            }
+            allocateList.clear();
+        }
     }
     friend std::ostream& operator <<(std::ostream &out, AllocatorFixedMemoryPool<T> const& data) {
         size_t potentialSizeAllocated = sizeof(T) * data.getNumberOfRequest();
@@ -120,7 +128,7 @@ public:
         }
 
         T *newPtr = (T *)calloc(size, sizeof(T));
-        if (newPtr == nullptr) { // check if memory is low
+        if (newPtr == NULL) { // check if memory is low
             it = freeArrays.begin();
             while (it != freeArrays.end()) { // free all pool memory
                 _ChunkArray *c = *it;
@@ -130,7 +138,7 @@ public:
                 free(c->pointer);
             }
             newPtr = (T *)calloc(size, sizeof(T)); // retry the memory request
-            if (newPtr == nullptr) {
+            if (newPtr == NULL) {
                 std::bad_alloc exception;
                 throw exception;
             }
