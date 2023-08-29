@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <ostream>
 
-#define MAXCHUNKSIZE 1000000000 // 1 GB
+#define MAXCHUNKSIZE 500000000 // 500 MB
 
 template <class T>
 class AllocatorFixedMemoryPool
