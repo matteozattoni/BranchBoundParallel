@@ -121,7 +121,7 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
     {
     case Solution:
     {
-        BranchBoundResultSolution *resultSolution = static_cast<BranchBoundResultSolution *>(result);
+        BranchBoundResultSolution *resultSolution = dynamic_cast<BranchBoundResultSolution *>(result);
         int solution = resultSolution->getSolutionResult();
         if (algorithm->isBetterBound(solution))
         {
@@ -133,7 +133,7 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
     }
     case ResultBranch:
     {
-        BranchBoundResultBranch *resultBranch = static_cast<BranchBoundResultBranch *>(result);
+        BranchBoundResultBranch *resultBranch = dynamic_cast<BranchBoundResultBranch *>(result);
         Branch *array = resultBranch->getArrayBranch();
         for (int i = 0; i < resultBranch->getNumberBranch(); i++)
         {
@@ -146,7 +146,7 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
     }
     case Closed:
     {
-        BranchBoundResultClosed *resultClose = static_cast<BranchBoundResultClosed *>(result);
+        BranchBoundResultClosed *resultClose = dynamic_cast<BranchBoundResultClosed *>(result);
         delete resultClose;
         break;
     }
