@@ -277,6 +277,7 @@ void MasterpoolManager::epilogue(std::function<const Branch *()> callback)
 void MasterpoolManager::sendBound(BranchBoundResultSolution *bound)
 {
     workpoolManager->sendBound(bound);
+    
     if (this->bound >= bound->getSolutionResult())
         return;
 
@@ -296,14 +297,6 @@ void MasterpoolManager::sendToken()
 
 
     tokenTermination.tokenColor = masterpoolRank == 0 && tokenTermination.nodeColor == nodeWhite ? tokenWhite : tokenTermination.tokenColor;
-
-/*     if (branchReceived.request != MPI_REQUEST_NULL || branchSent.request != MPI_REQUEST_NULL)
-        tokenTermination.nodeColor = nodeBlack; */
-
-/*     int isBranchIncoming;
-    MPI_Iprobe(MPI_ANY_SOURCE, BRANCH, masterpoolComm, &isBranchIncoming, MPI_STATUS_IGNORE);
-    if (isBranchIncoming)
-        tokenTermination.nodeColor = nodeBlack; */
 
     int rankToSend = (masterpoolRank + 1) % masterpoolSize;
 
@@ -437,7 +430,6 @@ BranchBoundResultBranch *MasterpoolManager::getResultFromStatus(MPI_Status statu
             if (cacheLastBoundMessage != nullptr) 
                 delete cacheLastBoundMessage;
             cacheLastBoundMessage = result;
-            
         }
         return nullptr;
         break;

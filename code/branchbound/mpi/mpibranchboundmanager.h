@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <vector>
+#include <chrono>
 
 #include "mpidatamanager.h"
 #include "workpoolmanager.h"
@@ -11,6 +12,9 @@
 class MPIBranchBoundManager: public MPIManager
 {
 private:
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::seconds sec;
+    typedef std::chrono::duration<float> fsec;
     double bound = 0.0;
     long totalSendBranch = 0;
     long totalRecvBranch = 0;
@@ -19,6 +23,7 @@ private:
     int worldRank;
     MPIManager *masterpoolManager;
     enum tagMessage { BRANCH, BRANCH_REQUEST, BOUND, TOKEN, TERMINATION};
+    fsec totalComunicationTime;
 public:
     MPIBranchBoundManager(MPIDataManager &manager);
     ~MPIBranchBoundManager();
