@@ -41,6 +41,8 @@ BranchBoundResultBranch *WorkpoolManager::getBranch()
     MPI_Request arrayRequestNotCompleted[workpoolSize];
     int nRecvNotCompleted = 0;
 
+    std::list<Branch*> branches;
+
     for (int i = 0; i < workpoolSize; i++)
     { // receive already commited and return the branch for the first receveive complteted
         if (i != workpoolRank && receiveBranch[i].request != MPI_REQUEST_NULL)
@@ -50,10 +52,10 @@ BranchBoundResultBranch *WorkpoolManager::getBranch()
             MPI_Test(&receiveBranch[i].request, &isCompleted, &status);
             if (isCompleted) // here a recevice is commited AND completed
             {
-                BranchBoundResultBranch *branch = dataManager.getBranchFromBuff(receiveBranch[i].branchBuffer, receiveBranch[i].numElement);
+                Branch *branch = dataManager.getBranchFromBuff(receiveBranch[i].branchBuffer, receiveBranch[i].numElement);
                 receiveBranch[i].request = MPI_REQUEST_NULL;
                 totalRecvBranch++;
-                return branch;
+                branches.push_front(branch);
             }
             else
             { // here a recevice is commited but NOT completed
@@ -71,10 +73,10 @@ BranchBoundResultBranch *WorkpoolManager::getBranch()
         int indexArrayNotCompleted;
         MPI_Waitany(nRecvNotCompleted, arrayRequestNotCompleted, &indexArrayNotCompleted, &status);
         int index = requestNotCompletedIndex[indexArrayNotCompleted];
-        BranchBoundResultBranch *branch = dataManager.getBranchFromBuff(receiveBranch[index].branchBuffer, receiveBranch[index].numElement);
+        Branch *branch = dataManager.getBranchFromBuff(receiveBranch[index].branchBuffer, receiveBranch[index].numElement);
+        branches.push_front(branch);
         receiveBranch[index].request = MPI_REQUEST_NULL;
         totalRecvBranch++;
-        return branch;
     }
 
     // Here no receveive are commited, now we ask if someone has sent a branch to us
@@ -82,9 +84,13 @@ BranchBoundResultBranch *WorkpoolManager::getBranch()
     MPI_Status status;
     MPI_Iprobe(MPI_ANY_SOURCE, TAG_BRANCH, workpoolComm, &isBranchIncoming, &status);
     if (isBranchIncoming)
-        return returnBranchFromStatus(status);
+        branches.push_front(getBranchFromStatus(status));
 
     // all receive are not commited (and not send incoming) so i'll wait the first message from other (termination)
+    if (branches.size() > 0) {
+        return dataManager.getBranchResultFromBranches(branches);
+    }
+
     throw MPILocalTerminationException();
 }
 
@@ -109,15 +115,14 @@ BranchBoundResultBranch *WorkpoolManager::waitForBranch()
         if (tokenTermination.hasToken && isLocalTerminate())
             sendToken();
 
-        BranchBoundResultBranch *b = nullptr;
+        Branch *b = nullptr;
 
         while (b == nullptr)
         {
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, workpoolComm, &status);
-            b = getResultFromStatus(status);
+            b = getBranchFromGeneralStatus(status);
         }
-        return b;
-
+        return dataManager.getBranchResultFromBranches({b});
         
     }
 }
@@ -151,8 +156,6 @@ void WorkpoolManager::sendBound(BranchBoundResultSolution *bound)
         MPI_Waitall(index, sendRequest, sendStatus);
     }
         
-
-    return;
 }
 
 void WorkpoolManager::loadBalance(std::function<void(BranchBoundResult *)> callback)
@@ -253,7 +256,7 @@ double WorkpoolManager::getBound()
     return bound;
 }
 
-BranchBoundResultBranch *WorkpoolManager::returnBranchFromStatus(MPI_Status status)
+Branch *WorkpoolManager::getBranchFromStatus(MPI_Status status)
 {
     int count;
     MPI_Get_count(&status, dataManager.getBranchType(), &count);
@@ -261,7 +264,7 @@ BranchBoundResultBranch *WorkpoolManager::returnBranchFromStatus(MPI_Status stat
         throw MPIGeneralException("WorkpoolManager::returnBranchFromStatus - get count return MPI_UNDEFINED");
     void *buffBranch = dataManager.getEmptyBranchElementBuff(count);
     MPI_Recv(buffBranch, count, dataManager.getBranchType(), status.MPI_SOURCE, status.MPI_TAG, workpoolComm, &status);
-    BranchBoundResultBranch *branch = dataManager.getBranchFromBuff(buffBranch, count);
+    Branch *branch = dataManager.getBranchFromBuff(buffBranch, count);
     totalRecvBranch++;
     return branch;
 }
@@ -341,13 +344,13 @@ void WorkpoolManager::broadcastTerminationWithValue(bool value)
     }
 }
 
-BranchBoundResultBranch *WorkpoolManager::getResultFromStatus(MPI_Status status)
+Branch *WorkpoolManager::getBranchFromGeneralStatus(MPI_Status status)
 {
     switch (status.MPI_TAG)
     {
     case TAG_BRANCH:
     {
-        return returnBranchFromStatus(status);
+        return getBranchFromStatus(status);
         break;
     }
     case TAG_TOKEN:
@@ -357,7 +360,7 @@ BranchBoundResultBranch *WorkpoolManager::getResultFromStatus(MPI_Status status)
         MPI_Iprobe(MPI_ANY_SOURCE, TAG_BRANCH, workpoolComm, &isBranchIncoming, &branchStatus);
         if (isBranchIncoming)
         { // there is some branch
-            return returnBranchFromStatus(branchStatus);
+            return getBranchFromStatus(branchStatus);
         }
         else
         { // nothing incoming we take the token
