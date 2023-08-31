@@ -68,12 +68,12 @@ BranchBoundResultBranch *MasterpoolManager::getBranch()
     catch (const MPILocalTerminationException &e)
     {
 
-        if (masterpoolComm == MPI_COMM_NULL)
+        if (masterpoolComm == MPI_COMM_NULL || masterpoolSize < 2)
             throw MPILocalTerminationException();
 
         std::list<Branch *> branches;
 
-        if (ringBranchReceived.request != MPI_REQUEST_NULL && masterpoolSize > 1)
+        if (ringBranchReceived.request != MPI_REQUEST_NULL)
         {
             int isRecvFinished;
             MPI_Status status;
@@ -87,7 +87,7 @@ BranchBoundResultBranch *MasterpoolManager::getBranch()
             }
         }
 
-        if (ringBranchReceived.request == MPI_REQUEST_NULL && masterpoolSize > 1)
+        if (ringBranchReceived.request == MPI_REQUEST_NULL)
         {
             int isRecvIncoming;
             MPI_Status status;
