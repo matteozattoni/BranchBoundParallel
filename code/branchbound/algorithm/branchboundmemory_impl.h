@@ -133,6 +133,7 @@ public:
             it = freeArrays.begin();
             while (it != freeArrays.end()) { // free all pool memory
                 _ChunkArray *c = *it;
+                sizeAllocated -= c->sizeMemoryHeap;
                 pointerSize.erase(c->pointer);
                 freeArrays.erase(it);
                 poolChunk.deallocate(c);
@@ -161,6 +162,7 @@ public:
         if (sizeAllocated > MAXARRAYCHUNKSIZE) {
             for(_ChunkArray *chunk: freeArrays) {
                 T* ptr = chunk->pointer;
+                sizeAllocated -= chunk->sizeMemoryHeap;
                 free(ptr);
                 poolChunk.deallocate(chunk);
                 pointerSize.erase(ptr);
