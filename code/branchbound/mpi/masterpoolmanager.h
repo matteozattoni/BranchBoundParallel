@@ -17,9 +17,10 @@ private:
     int masterpoolSize;
     int masterpoolRank;
     int nextRankToSend;
+    int previousRankToReceive;
     MPIManager *workpoolManager;
     MPI_Comm masterpoolComm;
-    enum tagMessage { BRANCH, BRANCH_REQUEST, BOUND, TOKEN, TERMINATION};
+    enum tagMessage { RING_BRANCH, TREE_BRANCH, BOUND, TOKEN, TERMINATION};
     enum eTokenColor {tokenWhite, tokenBlack};
     enum eNodeColor {nodeWhite , nodeBlack};
     struct {
@@ -31,7 +32,7 @@ private:
         MPI_Request request = MPI_REQUEST_NULL;
         void* buffer;
         int numElement;
-    } branchReceived;
+    } ringBranchReceived;
     struct {
         MPI_Request request;
     } boundSent;
@@ -46,8 +47,15 @@ private:
         MPI_Request request = MPI_REQUEST_NULL;
         void* buffer;
         int numElement;
+        bool canBeReceive;
+    } treeBranchReceive[2];
+    struct {
+        int child;
+        MPI_Request request = MPI_REQUEST_NULL;
+        void* buffer;
+        int numElement;
         bool mustBeSent;
-    } branchInitSent[2];
+    } treeBranchSent[2];
     BranchBoundResultSolution *cacheLastBoundMessage = nullptr;
     void sendToken();
     Branch* returnBranchFromStatus(MPI_Status status);
