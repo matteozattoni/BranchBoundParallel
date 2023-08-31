@@ -31,9 +31,9 @@
 #define CORR_DATASET6 "datasets/large/knapPI_3_5000_1000_1" // 72505
 #define CORR_DATASET7 "datasets/large/knapPI_3_10000_1000_1" // optimus is 146919
 
-#define CORR_TEST "datasets/large/knapPI_3_test" // ??
+#define CORR_TEST "datasets/large/knapPI_3_test" // 17696
 
-#define FILEPATH CORR_DATASET4
+#define FILEPATH CORR_TEST
 
 class KnapsackMemoryManager: public MPIDataManager
 {
