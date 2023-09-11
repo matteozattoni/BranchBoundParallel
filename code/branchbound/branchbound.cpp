@@ -5,10 +5,10 @@
 
 int BranchBound::rank = -1;
 
-BranchBound::BranchBound(MPIBranchBoundManager *mpiManager, BranchBoundAlgorithm *algorithm) : worldRank(mpiManager->getWorldRank())
+BranchBound::BranchBound(ParallelManager *parallelManager, BranchBoundAlgorithm *algorithm)
 {
-    rank = mpiManager->getWorldRank();
-    this->mpiManager = mpiManager;
+    rank = parallelManager->getIdentity();
+    this->parallelManager = parallelManager;
     this->algorithm = algorithm;
 }
 
@@ -18,17 +18,17 @@ void BranchBound::start()
 {
     BranchBoundProblem *problem;
 
-    if (rank == 0)
-        std::cout << "Start Branch & Bound parallel" << std::endl;
+    /* if (rank == 0)
+        std::cout << "Start Branch & Bound parallel" << std::endl; */
 
-    problem = mpiManager->getBranchProblem();
+    problem = parallelManager->getBranchProblem();
     // get problem from mpi
 
     algorithm->setProblem(problem);
 
     if (firstExecution)
     {
-        Branch *rootBranch = mpiManager->getRootBranch();
+        Branch *rootBranch = parallelManager->getRootBranch();
         if (rootBranch != nullptr)
             algorithm->setBranch(rootBranch);
         firstExecution = false;
@@ -55,7 +55,7 @@ void BranchBound::start()
                 try
                 {
                     // std::cout << rank << " start wait" << std::endl;
-                    BranchBoundResultBranch *resultBranch = mpiManager->waitForBranch();
+                    BranchBoundResultBranch *resultBranch = parallelManager->waitForBranch();
                     // std::cout << rank << " end wait" << std::endl;
                     for (Branch *b : resultBranch->getListBranch())
                     {
@@ -89,7 +89,7 @@ void BranchBound::start()
             }
         }
         // call prologue from mpi
-        mpiManager->prologue(
+        parallelManager->prologue(
             [this](BranchBoundResult *result)
             { this->newBranchBoundResult(result); });
 
@@ -99,7 +99,7 @@ void BranchBound::start()
             newBranchBoundResult(result);
 
             // call epilogue from mpi
-            mpiManager->epilogue([this]()
+            parallelManager->epilogue([this]()
                                  {
             Branch *s = nullptr;
             auto last = branchSet.rbegin();
@@ -156,7 +156,7 @@ void BranchBound::newBranchBoundResult(BranchBoundResult *result)
 
 void BranchBound::sendBound(BranchBoundResultSolution *solution)
 {
-    mpiManager->sendBound(solution);
+    parallelManager->sendBound(solution);
 }
 
 Branch *BranchBound::getTaskFromQueue()

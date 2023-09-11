@@ -1,7 +1,7 @@
 #ifndef BRANCHBOUND_H
 #define BRANCHBOUND_H
 
-#include <list>
+#include <set>
 #include <queue>
 #include <vector>
 #include <ostream>
@@ -9,7 +9,7 @@
 #include "algorithm/branchboundalgorithm.h"
 #include "algorithm/branchboundproblem.h"
 #include "algorithm/branchboundresult.h"
-#include "mpi/mpibranchboundmanager.h"
+#include "algorithm/parallelmanager.h"
 
 class BranchBound
 {
@@ -23,8 +23,8 @@ private:
     // Algorithm
     // long computation = 0;
     BranchBoundAlgorithm* algorithm;
-    MPIBranchBoundManager* mpiManager;
-    int worldRank;
+    ParallelManager* parallelManager;
+    //int worldRank;
     bool firstExecution = true;
    
     void addBranchToQueue(Branch* branch);
@@ -35,7 +35,7 @@ public:
     void start();
     void newBranchBoundResult(BranchBoundResult* result);
     Branch* getTaskFromQueue();
-    BranchBound(MPIBranchBoundManager*, BranchBoundAlgorithm*);
+    BranchBound(ParallelManager*, BranchBoundAlgorithm*);
     void setBound(int bound);
     void sendBound(BranchBoundResultSolution* boundToSend);
     friend std::ostream& operator<<(std::ostream& out, const BranchBound& data);

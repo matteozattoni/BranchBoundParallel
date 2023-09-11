@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-MasterpoolManager::MasterpoolManager(MPIDataManager &manager) : MPIManager(manager)
+MasterpoolManager::MasterpoolManager(MPIDataManager &manager) : ParallelManager(), dataManager(manager)
 {
     int worldSize;
     int worldRank;
@@ -531,4 +531,8 @@ void MasterpoolManager::terminate()
     {
         std::cout << "MASTERPOOL (size " << masterpoolSize << ") * Total send: " << totalSend << " - recv: " << totalRecv << std::endl;
     }
+}
+
+int MasterpoolManager::getIdentity() {
+    return masterpoolRank;
 }

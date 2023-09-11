@@ -9,19 +9,19 @@
 #include "workpoolmanager.h"
 #include "masterpoolmanager.h"
 
-class MPIBranchBoundManager: public MPIManager
+class MPIBranchBoundManager: public ParallelManager
 {
 private:
+    MPIDataManager &dataManager;
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::seconds sec;
     typedef std::chrono::duration<float> fsec;
     double bound = 0.0;
     long totalSendBranch = 0;
     long totalRecvBranch = 0;
-    MPIDataManager &dataManager;
     int worldSize;
     int worldRank;
-    MPIManager *masterpoolManager;
+    ParallelManager *masterpoolManager;
     enum tagMessage { BRANCH, BRANCH_REQUEST, BOUND, TOKEN, TERMINATION};
     fsec totalComunicationTime;
 public:
@@ -39,6 +39,7 @@ public:
     double getBound() override;
     void broadcastTerminationWithValue(bool value) override;
     void terminate() override;
+    int getIdentity() override;
     
 };
 

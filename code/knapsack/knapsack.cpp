@@ -49,7 +49,7 @@ bool Knapsack::hasCurrentBranch()
     return this->isComputingSolution;
 }
 
-void Knapsack::setBound(int bound)
+void Knapsack::setBound(double bound)
 {
     if (this->bound < bound)
         this->bound = bound;

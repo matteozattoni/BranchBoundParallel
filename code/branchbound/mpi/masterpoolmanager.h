@@ -1,24 +1,25 @@
 #ifndef MPIGLOBALMANAGER_H
 #define MPIGLOBALMANAGER_H
 
-#include "mpimanager.h"
+#include "mpidatamanager.h"
+#include "../algorithm/parallelmanager.h"
 #include "workpoolmanager.h"
 #include "mpiexceptions.h"
 #include "mpimessage.h"
-#include "tokenringmanager.h"
 #include <vector>
 
 #define GLOBAL_MASTER_RANK 0
 
-class MasterpoolManager: public MPIManager
+class MasterpoolManager: public ParallelManager
 {
 private:
+    MPIDataManager &dataManager;
     double bound = 0.0;
     int masterpoolSize;
     int masterpoolRank;
     int nextRankToSend;
     int previousRankToReceive;
-    MPIManager *workpoolManager;
+    ParallelManager *workpoolManager;
     MPI_Comm masterpoolComm;
     enum tagMessage { RING_BRANCH, TREE_BRANCH, BOUND, TOKEN, TERMINATION};
     enum eTokenColor {tokenWhite, tokenBlack};
@@ -77,6 +78,7 @@ public:
     void broadcastTerminationWithValue(bool value) override;
     double getBound() override;
     void terminate() override;
+    int getIdentity() override;
     ~MasterpoolManager();
 };
 

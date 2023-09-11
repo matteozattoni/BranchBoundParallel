@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-WorkpoolManager::WorkpoolManager(MPIDataManager &manager) : MPIManager(manager)
+WorkpoolManager::WorkpoolManager(MPIDataManager &manager) : ParallelManager(), dataManager(manager)
 {
     int worldRank;
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
@@ -525,4 +525,8 @@ void WorkpoolManager::terminate()
     } */
 
     return true;
+ }
+
+ int WorkpoolManager::getIdentity() {
+    return workpoolRank;
  }

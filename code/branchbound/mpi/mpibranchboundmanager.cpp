@@ -1,11 +1,10 @@
 #include "mpibranchboundmanager.h"
-#include "tokenringmanager.h"
 #include <iostream>
 #include <cmath>
 
 using namespace std;
 
-MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : MPIManager(manager), dataManager(manager)
+MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : ParallelManager(), dataManager(manager)
 {
     auto start = Time::now();
     MPI_Init(NULL, NULL);
@@ -162,4 +161,8 @@ double MPIBranchBoundManager::getBound()
 void MPIBranchBoundManager::terminate()
 {
     masterpoolManager->terminate();
+}
+
+int MPIBranchBoundManager::getIdentity() {
+    return worldRank;
 }

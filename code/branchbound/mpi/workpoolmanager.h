@@ -1,13 +1,16 @@
 #ifndef WORKPOOLMANAGER_H
 #define WORKPOOLMANAGER_H
 
-#include "mpimanager.h"
+#include "mpiexceptions.h"
+#include "../algorithm/parallelmanager.h"
+#include "mpidatamanager.h"
 #include "mpimessage.h"
 #include <vector>
 
-class WorkpoolManager: public MPIManager
+class WorkpoolManager: public ParallelManager
 {
 private:
+    MPIDataManager &dataManager;
     double bound=0.0;
     MPI_Comm workpoolComm;
     int numberWorkpool;
@@ -60,6 +63,7 @@ public:
     void broadcastTerminationWithValue(bool value) override;
     double getBound() override;
     void terminate() override;
+    int getIdentity() override;
     WorkpoolManager(MPIDataManager &manager);
     ~WorkpoolManager();
 };

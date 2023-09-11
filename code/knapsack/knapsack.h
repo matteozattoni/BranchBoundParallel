@@ -61,7 +61,7 @@ public:
     ~Knapsack();
 
     bool isBetterBound(int bound) override;
-    void setBound(int bound) override;
+    void setBound(double bound) override;
     void setProblem(BranchBoundProblem*) override;
     void setBranch(Branch*) override;
     BranchBoundResult* computeTaskIteration() override;
