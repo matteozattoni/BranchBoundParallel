@@ -48,7 +48,7 @@ void SequentialBranchBound::newBranchBoundResult(BranchBoundResult* result) {
         delete resultSolution;
         break;
     }
-    case ResultBranch:
+    case Branches:
     {
         BranchBoundResultBranch *resultBranch = dynamic_cast<BranchBoundResultBranch *>(result);
         for(Branch* b : resultBranch->getListBranch()) {

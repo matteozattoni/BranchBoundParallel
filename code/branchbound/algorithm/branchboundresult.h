@@ -4,7 +4,7 @@
 #include "branchboundbranch.h"
 #include <list>
 
-enum eBranchBoundResultType { Solution, ResultBranch, Closed };
+enum eBranchBoundResultType { Solution, Branches, Closed };
 
 class BranchBoundResult
 {
@@ -37,7 +37,7 @@ protected:
 public:
     BranchBoundResultBranch(std::list<Branch*> listOfBranch): branches(listOfBranch) {}
     virtual ~BranchBoundResultBranch() {};
-    eBranchBoundResultType getResultType() const override {return ResultBranch;};
+    eBranchBoundResultType getResultType() const override {return Branches;};
     int getNumberBranch() const {return branches.size();}
     const std::list<Branch*> getListBranch() const { return branches;}
 };
