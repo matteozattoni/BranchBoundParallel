@@ -15,8 +15,8 @@ branchbound.o: branchbound.cpp
 	$(CC) $(CFLAGS) branchbound.cpp
 
 
-mpi.o: mpi/mpimessage.cpp mpi/masterpoolmanager.cpp mpi/workpoolmanager.cpp mpi/tokenringmanager.cpp mpi/mpibranchboundmanager.cpp
-	$(CC) $(CFLAGS) mpi/mpimessage.cpp mpi/masterpoolmanager.cpp mpi/workpoolmanager.cpp mpi/tokenringmanager.cpp mpi/mpibranchboundmanager.cpp
+mpi.o: mpi/mpimessage.cpp mpi/masterpoolmanager.cpp mpi/workpoolmanager.cpp mpi/mpibranchboundmanager.cpp
+	$(CC) $(CFLAGS) mpi/mpimessage.cpp mpi/masterpoolmanager.cpp mpi/workpoolmanager.cpp mpi/mpibranchboundmanager.cpp
 
 seq_branchbound.o: sequential/seq_branchbound.cpp
 	$(CC) $(CFLAGS) sequential/seq_branchbound.cpp
