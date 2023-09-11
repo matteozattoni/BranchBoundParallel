@@ -24,7 +24,7 @@ private:
     /* data */
 public:
     eBranchBoundResultType getResultType() const override {return Solution;};
-    virtual int getSolutionResult() const = 0;
+    virtual double getSolutionResult() const = 0;
     BranchBoundResultSolution() {}
     virtual ~BranchBoundResultSolution() {}
 };
