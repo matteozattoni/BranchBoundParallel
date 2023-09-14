@@ -60,7 +60,7 @@ public:
     Knapsack(/* manager?*/);
     ~Knapsack();
 
-    bool isBetterBound(int bound) override;
+    bool isBetterBound(double bound) override;
     void setBound(double bound) override;
     void setProblem(BranchBoundProblem*) override;
     void setBranch(Branch*) override;

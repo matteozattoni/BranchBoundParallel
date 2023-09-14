@@ -14,7 +14,7 @@ KnapsackProblem *Knapsack::getKnapsackProblem()
     return knapsackProblem;
 }
 
-bool Knapsack::isBetterBound(int bound)
+bool Knapsack::isBetterBound(double bound)
 {
     return this->bound < bound;
 }

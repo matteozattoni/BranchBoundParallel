@@ -178,12 +178,10 @@ void BranchBound::addBranchToQueue(Branch *branch)
     branchSet.insert(branch);
 }
 
-void BranchBound::setBound(int bound)
+void BranchBound::setBound(double bound)
 {
     this->bound = bound;
     this->algorithm->setBound(bound);
-    /*     if (bound == 28919) //debug
-            std::cout << rank << " got the solution " << bound << std::endl; */
 }
 
 std::ostream &operator<<(std::ostream &out, const BranchBound &data)

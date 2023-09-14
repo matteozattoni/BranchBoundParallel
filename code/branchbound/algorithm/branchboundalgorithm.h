@@ -14,7 +14,7 @@ protected:
     BranchBoundProblem* problem;
     /* data */
 public:
-    virtual bool isBetterBound(int bound) = 0;
+    virtual bool isBetterBound(double bound) = 0;
     virtual void setBound(double bound) = 0;
     virtual void setProblem(BranchBoundProblem*) = 0;
     virtual void setBranch(Branch*) = 0;

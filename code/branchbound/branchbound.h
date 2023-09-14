@@ -31,12 +31,12 @@ private:
 public:
     // method to loop
     static int rank;
-    int bound;
+    double bound;
     void start();
     void newBranchBoundResult(BranchBoundResult* result);
     Branch* getTaskFromQueue();
     BranchBound(ParallelManager*, BranchBoundAlgorithm*);
-    void setBound(int bound);
+    void setBound(double bound);
     void sendBound(BranchBoundResultSolution* boundToSend);
     friend std::ostream& operator<<(std::ostream& out, const BranchBound& data);
     ~BranchBound();
