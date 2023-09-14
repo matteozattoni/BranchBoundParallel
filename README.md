@@ -9,3 +9,8 @@
 container name: debian_openmpi
 container username: mpi
 container psw: mpi
+
+
+### Compile
+cd /code
+make
