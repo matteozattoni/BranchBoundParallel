@@ -15,8 +15,8 @@ branchbound.o: branchbound.cpp
 	$(CC) $(CFLAGS) branchbound.cpp
 
 
-mpi.o: mpi/mpimessage.cpp mpi/masterpoolmanager.cpp mpi/workpoolmanager.cpp mpi/mpibranchboundmanager.cpp
-	$(CC) $(CFLAGS) mpi/mpimessage.cpp mpi/masterpoolmanager.cpp mpi/workpoolmanager.cpp mpi/mpibranchboundmanager.cpp
+mpi.o: mpi/mpimessage.cpp mpi/masterpoolmanager.cpp mpi/workpoolmanager.cpp mpi/commworldmanager.cpp  mpi/mpibranchboundmanager.cpp
+	$(CC) $(CFLAGS) mpi/mpimessage.cpp mpi/masterpoolmanager.cpp mpi/workpoolmanager.cpp mpi/commworldmanager.cpp mpi/mpibranchboundmanager.cpp
 
 openmp.o: openmp/openmpmanager.cpp
 	$(CC) $(CFLAGS) openmp/openmpmanager.cpp

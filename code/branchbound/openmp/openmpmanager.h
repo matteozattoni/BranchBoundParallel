@@ -2,24 +2,36 @@
 #define OPENMPMANAGER_H
 
 #include <list>
+#include <vector>
+#include "omp.h"
 #include "../algorithm/parallelmanager.h"
 #include "../algorithm/branchboundalgorithm.h"
+#include "../branchbound.h"
 #include "../mpi/mpidatamanager.h"
+
+// mpirun --bind-to socket -np 1 branchbound.out
 
 #define NUM_THREADS 1
 
+struct ThreadData
+{
+    int thread_id;
+    BranchBound* orchestrator;
+    omp_lock_t lockBound;
+    double bound = -1;
+};
 
 
 class OpenMPManager: public ParallelManager
 {
 private:
+    ThreadData threadsData[NUM_THREADS];
     bool globalTermination = false;
     int numOfThreadWaitingForBranch = 0;
     std::list<const Branch*> listOfBranches;
     MPIDataManager &dataManager;
     ParallelManager* nextManager;
     BranchBoundProblem* problem;
-    int thread_id;
     /* data */
 public:
     OpenMPManager(MPIDataManager &mpiDataManager);
@@ -40,7 +52,7 @@ public:
     void broadcastTerminationWithValue(bool value) override {};
     double getBound() override { return 0.0;};
     void terminate() override {};
-    int getIdentity() override {return 0;};
+    int getIdentity() override {return omp_get_thread_num();};
 
     void start(std::function<BranchBoundAlgorithm*()>);
 };

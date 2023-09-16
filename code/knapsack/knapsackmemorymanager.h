@@ -33,7 +33,7 @@
 
 #define CORR_TEST "datasets/large/knapPI_3_test" // 17696
 
-#define FILEPATH CORR_DATASET3
+#define FILEPATH SMALL_DATASET7
 
 class KnapsackMemoryManager: public MPIDataManager
 {

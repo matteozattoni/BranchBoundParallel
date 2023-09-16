@@ -69,17 +69,17 @@ void BranchBound::start()
                 }
                 catch (const MPIBranchBoundTerminationException &e)
                 {
-                    std::cout << " nn " << bound << std::endl;
+                    const int rank = parallelManager->getIdentity();
                     if (e.finalSolution > bound)
                     {
-                        if (BranchBound::rank == 0)
+                        if (rank == 0)
                             throw e;
                         else
                             throw 0;
                     }
                     else
                     {
-                        if (BranchBound::rank == 0)
+                        if (rank == 0)
                             throw MPIBranchBoundTerminationException(bound);
                         else
                             throw 0;
@@ -93,7 +93,6 @@ void BranchBound::start()
         parallelManager->prologue(
             [this](BranchBoundResult *result)
             { this->newBranchBoundResult(result); });
-
         try
         {
             BranchBoundResult *result = algorithm->computeTaskIteration();
@@ -181,8 +180,10 @@ void BranchBound::addBranchToQueue(Branch *branch)
 
 void BranchBound::setBound(double bound)
 {
-    this->bound = bound;
-    this->algorithm->setBound(bound);
+    if (this->algorithm->isBetterBound(bound)) {
+        this->bound = bound;
+        this->algorithm->setBound(bound);
+    }
 }
 
 std::ostream &operator<<(std::ostream &out, const BranchBound &data)

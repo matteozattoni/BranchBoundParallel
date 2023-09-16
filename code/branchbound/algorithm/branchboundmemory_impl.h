@@ -2,13 +2,15 @@
 #define KNAPSACKMEMORY
 
 #include <list>
+#include "omp.h"
 #include <set>
 #include <map>
 #include <stdlib.h>
 #include <ostream>
 
-#define MAXCHUNKSIZE 500000000 // 500 MB
-#define MAXARRAYCHUNKSIZE 1000000000 // 1 GB
+
+#define MAXCHUNKSIZE 1 // 500000000 // 500 MB
+#define MAXARRAYCHUNKSIZE 1 //1000000000 // 1 GB
 
 template <class T>
 class AllocatorFixedMemoryPool
@@ -21,6 +23,7 @@ private:
 public:
     T *allocate()
     {
+        return (T *)malloc(sizeof(T));
         numberOfRequest++;
         if (allocateList.empty())
         {
@@ -45,6 +48,8 @@ public:
 
     void deallocate(T *ptr)
     {
+        free((void*)ptr);
+        return;
         allocateList.push_front(ptr);
         if (allocateList.size() * sizeof(T) > MAXCHUNKSIZE) {
             for (T* ptr : allocateList) {
@@ -106,6 +111,7 @@ protected:
 public:
     T *allocate(size_t size)
     {
+        return (T *)calloc(size, sizeof(T));
         sizeRequested+=size;
         typename std::set<_ChunkArray *>::iterator it;
         it = freeArrays.begin();
@@ -153,6 +159,8 @@ public:
     }
     void deallocate(const T *pt)
     {
+        free((void*)pt);
+        return;
         T* ptr = (T*)pt;
         size_t size = pointerSize[ptr];
         _ChunkArray *newChunk = poolChunk.allocate();

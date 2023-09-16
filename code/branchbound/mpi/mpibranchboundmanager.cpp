@@ -1,4 +1,5 @@
 #include "mpibranchboundmanager.h"
+#include "commworldmanager.h"
 #include <iostream>
 #include <cmath>
 
@@ -7,9 +8,11 @@ using namespace std;
 MPIBranchBoundManager::MPIBranchBoundManager(MPIDataManager &manager) : ParallelManager(), dataManager(manager)
 {
     auto start = Time::now();
-    MPI_Init(NULL, NULL);
+    int provided;
+    MPI_Init_thread(NULL, NULL, MPI_THREAD_SINGLE, &provided);
+    //MPI_Init(NULL, NULL);
     manager.commitDatatypes();
-    masterpoolManager = new MasterpoolManager(manager);
+    masterpoolManager = new CommWorldManager(manager);
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
     if (worldRank == 0)
