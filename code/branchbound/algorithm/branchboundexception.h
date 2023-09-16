@@ -11,6 +11,7 @@ enum eBranchBoundException {
     AlgorithmAlreadyComputingBranch,
     AlgorithmIsNotComputingBranch,
     InfeasbileSolution,
+    End,
 };
 
 

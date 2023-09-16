@@ -5,8 +5,9 @@
 #include "knapsack/knapsackmemorymanager.h"
 #include "knapsack/knapsack.h"
 #include "branchbound/branchbound.h"
-#include "branchbound/sequential/seq_branchbound.h"
 #include "branchbound/mpi/mpibranchboundmanager.h"
+#include "branchbound/openmp/openmpmanager.h"
+#include "branchbound/sequential/seq_branchbound.h"
 #include "mpi.h"
 
 using namespace std;
@@ -255,30 +256,31 @@ int runKnaspackParallel() {
     typedef std::chrono::duration<float> fsec;
 
     auto t0 = Time::now();
-    Knapsack *knapsack = new Knapsack();
+    //Knapsack *knapsack = new Knapsack();
     KnapsackMemoryManager *man = new KnapsackMemoryManager();
-/*     man->testProblemMemory(); // debug
-    man->testBranchMemory();
-    man->testBoundMemory(); */
-    MPIBranchBoundManager *mpiManger = new MPIBranchBoundManager(*man);
- 
-    BranchBound *branchBound = new BranchBound(mpiManger, knapsack);
+    OpenMPManager *manager = new OpenMPManager(*man);
     try
     {
-        branchBound->start();
-        delete branchBound;
+        manager->start([]{
+            Knapsack *knapsack = new Knapsack();
+            return knapsack;
+        });
         //delete knapsack;
+        auto t1 = Time::now();
+        fsec fs = t1 - t0;
+        sec d = std::chrono::duration_cast<sec>(fs);
+        cout << "Total duration: " << d.count() << "s" << endl;
         delete man;
-        delete mpiManger;
-        return 1;
+        delete manager;
+        return 0;
+        //return 1;
     }
     catch (MPIBranchBoundTerminationException &e)
     {   
         cout << "Final solution is " << e.finalSolution << endl;
-        delete branchBound;
         //delete knapsack;
         delete man;
-        delete mpiManger;
+        delete manager;
         auto t1 = Time::now();
         fsec fs = t1 - t0;
         sec d = std::chrono::duration_cast<sec>(fs);
@@ -291,10 +293,9 @@ int runKnaspackParallel() {
         if (e == 0)
         {
             //knapsack->printAlgorithm(cout);
-            delete branchBound;
             //delete knapsack;
             delete man;
-            delete mpiManger;
+            delete manager;
             return 0;
         }
 

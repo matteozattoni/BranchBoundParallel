@@ -2,7 +2,7 @@
 
 CC=mpic++
 
-CFLAGS=-c -Wall
+CFLAGS= -fopenmp -c -Wall
 
 .PHONY: clean
 

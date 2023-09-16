@@ -1,6 +1,6 @@
 CC=mpic++
 
-CFLAGS=-c -Wall
+CFLAGS= -fopenmp -c -Wall
 
 MAKE=make
 
@@ -15,7 +15,7 @@ knap_to_build = $(wildcard knapsack/*.o)
 all: prog clean
 
 prog: branchbound.o knapsack.o main.o
-	$(CC) $(branch_to_build) $(knap_to_build) main.o -o branchbound.out
+	$(CC) -fopenmp $(branch_to_build) $(knap_to_build) main.o -o branchbound.out
 
 branchbound.o:
 	$(MAKE) -C $(BRANCHBOUNDIR)

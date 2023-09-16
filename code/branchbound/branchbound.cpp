@@ -69,6 +69,7 @@ void BranchBound::start()
                 }
                 catch (const MPIBranchBoundTerminationException &e)
                 {
+                    std::cout << " nn " << bound << std::endl;
                     if (e.finalSolution > bound)
                     {
                         if (BranchBound::rank == 0)
