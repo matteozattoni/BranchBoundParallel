@@ -25,8 +25,8 @@ void OpenMPManager::start(std::function<BranchBoundAlgorithm *()> call)
         int num_threads = omp_get_num_threads();
 #pragma omp master
         {
-            std::cout << "Num of threads: " << num_threads << std::endl;
             nextManager = new MPIBranchBoundManager(dataManager);
+            std::cout << "Comm rank: " << nextManager->getIdentity() << " - Num of threads: " << num_threads << std::endl;
             problem = nextManager->getBranchProblem();
         }
 
