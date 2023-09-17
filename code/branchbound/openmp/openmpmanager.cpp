@@ -18,7 +18,7 @@ void OpenMPManager::start(std::function<BranchBoundAlgorithm *()> call)
 {
     // set number of threads
     // omp_set_dynamic(1);
-    omp_set_num_threads(NUM_THREADS);
+    omp_set_num_threads(NUM_THREADS_HELPER + NUM_THREADS_WORKER);
 #pragma omp parallel
     {
         const int thread_id = omp_get_thread_num();
@@ -26,7 +26,7 @@ void OpenMPManager::start(std::function<BranchBoundAlgorithm *()> call)
 #pragma omp masked
         {
             nextManager = new MPIBranchBoundManager(dataManager);
-            std::cout << "Comm rank: " << nextManager->getIdentity() << " - Total threads: " << num_threads << " - Total worker: " << NUM_THREADS_WORKER << std::endl;
+            std::cout << "Comm rank: " << nextManager->getIdentity() << " | " << num_threads << " threads (worker: " << NUM_THREADS_WORKER << " - helper: " << NUM_THREADS_HELPER << ")" << std::endl;
             problem = nextManager->getBranchProblem();
         }
 
@@ -222,7 +222,9 @@ void OpenMPManager::epilogue(std::function<const Branch *()> callback)
     {
 #pragma omp task private(newBranches) firstprivate(thread_id)
         {
-            omp_set_lock(&threadsData[thread_id].lockList);
+            while(!omp_test_lock(&threadsData[thread_id].lockList)) {
+                #pragma omp taskyield
+            }
             threadsData[thread_id].branches.insert(threadsData[thread_id].branches.end(), newBranches.begin(), newBranches.end());
             if (thread_id == 0)
                 nextManager->epilogue([this, thread_id]() -> const Branch *
@@ -248,7 +250,9 @@ void OpenMPManager::sendBound(BranchBoundResultSolution *bound)
         {
             if (i != myId)
             {
-                omp_set_lock(&threadsData[i].lockBound);
+                while(!omp_test_lock(&threadsData[i].lockBound)) {
+                    #pragma omp taskyield
+                }
                 if (solution > threadsData[i].bound)
                     threadsData[i].bound = solution;
                 omp_unset_lock(&threadsData[i].lockBound);

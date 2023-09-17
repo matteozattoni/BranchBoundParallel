@@ -12,7 +12,7 @@
 // mpirun --bind-to socket -np 1 branchbound.out
 
 #define NUM_THREADS_WORKER 2
-#define NUM_THREADS 4
+#define NUM_THREADS_HELPER 2
 
 struct ThreadData
 {
