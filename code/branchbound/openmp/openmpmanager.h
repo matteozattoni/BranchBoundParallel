@@ -11,8 +11,8 @@
 
 // mpirun --bind-to socket -np 1 branchbound.out
 
-#define NUM_THREADS_WORKER 2
-#define NUM_THREADS_HELPER 2
+#define NUM_THREADS_WORKER 1
+#define NUM_THREADS_HELPER 0
 
 struct ThreadData
 {
@@ -55,7 +55,7 @@ public:
     void broadcastTerminationWithValue(bool value) override {};
     double getBound() override { return 0.0;};
     void terminate() override {};
-    int getIdentity() override {return omp_get_thread_num();};
+    int getIdentity() override;
 
     void start(std::function<BranchBoundAlgorithm*()>);
 };

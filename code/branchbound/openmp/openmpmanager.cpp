@@ -12,6 +12,8 @@ OpenMPManager::OpenMPManager(MPIDataManager &mpiDataManager) : dataManager(mpiDa
 
 OpenMPManager::~OpenMPManager()
 {
+    if (nextManager != nullptr)
+        delete nextManager;
 }
 
 void OpenMPManager::start(std::function<BranchBoundAlgorithm *()> call)
@@ -42,8 +44,6 @@ void OpenMPManager::start(std::function<BranchBoundAlgorithm *()> call)
             {
                 branchBound->start();
                 throw End;
-                if (thread_id == 0)
-                    delete nextManager;
             }
             catch (const eBranchBoundException e)
             {
@@ -53,8 +53,8 @@ void OpenMPManager::start(std::function<BranchBoundAlgorithm *()> call)
             {
                 if (thread_id == 0)
                 {
-                    std::cout << "Final solution is " << es.finalSolution << std::endl;
-                    delete nextManager;
+                    if (nextManager->getIdentity() == 0)
+                        std::cout << "Final solution is " << es.finalSolution << std::endl;
                 }
             }
             catch (const int i)
@@ -259,4 +259,10 @@ void OpenMPManager::sendBound(BranchBoundResultSolution *bound)
             }
         }
     }
+}
+
+int OpenMPManager::getIdentity() {
+    if (nextManager != nullptr)
+        return nextManager->getIdentity();
+    return -1;
 }

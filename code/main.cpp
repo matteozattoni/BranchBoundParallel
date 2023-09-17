@@ -55,11 +55,11 @@ void test3()
     // Definisci un tipo derivato personalizzato che inizia dal doppio offset
     int numElementBlock[1] = {1};
     MPI_Datatype datatypes[1] = {MPI_INT};
-    MPI_Type_create_struct(1,                            // Numero di blocchi
-                           numElementBlock,                // Numero di elementi in ogni blocco
-                           offsets,                      // Offset
-                           datatypes, // Tipi di dati in ogni blocco
-                           &mpi_data_type);              // Tipo derivato risultante
+    MPI_Type_create_struct(1,               // Numero di blocchi
+                           numElementBlock, // Numero di elementi in ogni blocco
+                           offsets,         // Offset
+                           datatypes,       // Tipi di dati in ogni blocco
+                           &mpi_data_type); // Tipo derivato risultante
 
     MPI_Aint lb, extent;
     MPI_Type_get_extent(mpi_data_type, &lb, &extent);
@@ -116,13 +116,13 @@ void test2()
     offsets[1] = b - base;
 
     // Definisci un tipo derivato personalizzato che inizia dal doppio offset
-    int numElementsBlock[2] = {1,1};
+    int numElementsBlock[2] = {1, 1};
     MPI_Datatype datatypes[2] = {MPI_INT, MPI_C_BOOL};
-    MPI_Type_create_struct(2,                                        // Numero di blocchi
-                           numElementsBlock,                         // Numero di elementi in ogni blocco
-                           offsets,                                  // Offset
-                           datatypes, // Tipi di dati in ogni blocco
-                           &mpi_data_type);                          // Tipo derivato risultante
+    MPI_Type_create_struct(2,                // Numero di blocchi
+                           numElementsBlock, // Numero di elementi in ogni blocco
+                           offsets,          // Offset
+                           datatypes,        // Tipi di dati in ogni blocco
+                           &mpi_data_type);  // Tipo derivato risultante
 
     MPI_Aint lb, extent;
     MPI_Type_get_extent(mpi_data_type, &lb, &extent);
@@ -177,13 +177,13 @@ void test()
     offsets[1] = offsetof(Data, value2);
 
     // Definisci un tipo derivato personalizzato che inizia dal doppio offset
-    int numElementsBlock[2] = {1,1};
+    int numElementsBlock[2] = {1, 1};
     MPI_Datatype datatypes[2] = {MPI_DOUBLE, MPI_DOUBLE};
-    MPI_Type_create_struct(2,                                           // Numero di blocchi
-                           numElementsBlock,                            // Numero di elementi in ogni blocco
-                           offsets,                                     // Offset
-                           datatypes, // Tipi di dati in ogni blocco
-                           &mpi_data_type);                             // Tipo derivato risultante
+    MPI_Type_create_struct(2,                // Numero di blocchi
+                           numElementsBlock, // Numero di elementi in ogni blocco
+                           offsets,          // Offset
+                           datatypes,        // Tipi di dati in ogni blocco
+                           &mpi_data_type);  // Tipo derivato risultante
 
     MPI_Aint lb, extent;
     MPI_Type_get_extent(mpi_data_type, &lb, &extent);
@@ -224,7 +224,8 @@ void test()
     MPI_Finalize();
 }
 
-void runKnapsackSequential() {
+void runKnapsackSequential()
+{
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::seconds sec;
     typedef std::chrono::duration<float> fsec;
@@ -241,59 +242,63 @@ void runKnapsackSequential() {
     seqBranchBound.start(problemSeq, rootBranch);
     cout << "Final solution is " << seqBranchBound.getBound() << endl;
     delete manSeq;
-    //delete knapsackSeq;
+    // delete knapsackSeq;
     delete problemSeq;
-    
+
     auto t1 = Time::now();
     fsec fs = t1 - t0;
     sec d = std::chrono::duration_cast<sec>(fs);
     cout << "Total duration: " << d.count() << "s" << endl;
 }
 
-int runKnaspackParallel() {
+int runKnaspackParallel()
+{
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::seconds sec;
     typedef std::chrono::duration<float> fsec;
 
     auto t0 = Time::now();
-    //Knapsack *knapsack = new Knapsack();
+    // Knapsack *knapsack = new Knapsack();
     KnapsackMemoryManager *man = new KnapsackMemoryManager();
     OpenMPManager *manager = new OpenMPManager(*man);
     try
     {
-        manager->start([]{
+        manager->start([]
+                       {
             Knapsack *knapsack = new Knapsack();
-            return knapsack;
-        });
-        //delete knapsack;
-        auto t1 = Time::now();
-        fsec fs = t1 - t0;
-        sec d = std::chrono::duration_cast<sec>(fs);
-        cout << "Total duration: " << d.count() << "s" << endl;
+            return knapsack; });
+        // delete knapsack;
+        if (manager->getIdentity() == 0)
+        {
+            auto t1 = Time::now();
+            fsec fs = t1 - t0;
+            sec d = std::chrono::duration_cast<sec>(fs);
+            cout << "Total duration: " << d.count() << "s" << endl;
+        }
         delete man;
         delete manager;
         return 0;
-        //return 1;
+        // return 1;
     }
     catch (MPIBranchBoundTerminationException &e)
-    {   
+    {
         cout << "Final solution is " << e.finalSolution << endl;
-        //delete knapsack;
+        // delete knapsack;
         delete man;
         delete manager;
         auto t1 = Time::now();
         fsec fs = t1 - t0;
         sec d = std::chrono::duration_cast<sec>(fs);
         cout << "Total duration: " << d.count() << "s" << endl;
-        //knapsack->printAlgorithm(cout);
+        // knapsack->printAlgorithm(cout);
         return 0;
     }
     catch (int e)
     {
         if (e == 0)
         {
-            //knapsack->printAlgorithm(cout);
-            //delete knapsack;
+            // knapsack->printAlgorithm(cout);
+            // delete knapsack;
             delete man;
             delete manager;
             return 0;
@@ -306,11 +311,10 @@ int runKnaspackParallel() {
 }
 
 int main()
-{    
+{
     // test3();
-    //runKnapsackSequential();
-    //return 0;
-    
+    // runKnapsackSequential();
+    // return 0;
+
     return runKnaspackParallel();
-    
 }

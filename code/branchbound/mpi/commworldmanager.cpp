@@ -64,6 +64,12 @@ BranchBoundResultBranch *CommWorldManager::getBranch()
             }
         }
 
+        if (branches.size() > 0)
+        {
+            BranchBoundResultBranch *result = dataManager.getBranchResultFromBranches(branches);
+            return result;
+        }
+
         if (ringBranchReceived.request == MPI_REQUEST_NULL)
         {
             int isRecvIncoming;
@@ -76,6 +82,12 @@ BranchBoundResultBranch *CommWorldManager::getBranch()
             }
         }
 
+        if (branches.size() > 0)
+        {
+            BranchBoundResultBranch *result = dataManager.getBranchResultFromBranches(branches);
+            return result;
+        }
+
         if (treeBranchReceive[0].request != MPI_REQUEST_NULL)
         {
             MPI_Status status;
@@ -84,6 +96,12 @@ BranchBoundResultBranch *CommWorldManager::getBranch()
             branches.push_front(branch);
             totalRecvBranch++;
             treeBranchReceive[0].request = MPI_REQUEST_NULL;
+        }
+
+        if (branches.size() > 0)
+        {
+            BranchBoundResultBranch *result = dataManager.getBranchResultFromBranches(branches);
+            return result;
         }
 
         if (treeBranchReceive[1].request != MPI_REQUEST_NULL)
