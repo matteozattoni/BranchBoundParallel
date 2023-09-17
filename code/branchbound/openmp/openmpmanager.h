@@ -11,7 +11,8 @@
 
 // mpirun --bind-to socket -np 1 branchbound.out
 
-#define NUM_THREADS 1
+#define NUM_THREADS_WORKER 2
+#define NUM_THREADS 4
 
 struct ThreadData
 {
@@ -19,16 +20,17 @@ struct ThreadData
     BranchBound* orchestrator;
     omp_lock_t lockBound;
     double bound = -1;
+    std::list<const Branch*> branches;
+    omp_lock_t lockList;
 };
 
 
 class OpenMPManager: public ParallelManager
 {
 private:
-    ThreadData threadsData[NUM_THREADS];
+    ThreadData threadsData[NUM_THREADS_WORKER];
     bool globalTermination = false;
     int numOfThreadWaitingForBranch = 0;
-    std::list<const Branch*> listOfBranches;
     MPIDataManager &dataManager;
     ParallelManager* nextManager;
     BranchBoundProblem* problem;

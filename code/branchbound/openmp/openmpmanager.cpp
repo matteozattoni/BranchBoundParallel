@@ -21,41 +21,48 @@ void OpenMPManager::start(std::function<BranchBoundAlgorithm *()> call)
     omp_set_num_threads(NUM_THREADS);
 #pragma omp parallel
     {
-        int thread_id = omp_get_thread_num();
+        const int thread_id = omp_get_thread_num();
         int num_threads = omp_get_num_threads();
-#pragma omp master
+#pragma omp masked
         {
             nextManager = new MPIBranchBoundManager(dataManager);
-            std::cout << "Comm rank: " << nextManager->getIdentity() << " - Num of threads: " << num_threads << std::endl;
+            std::cout << "Comm rank: " << nextManager->getIdentity() << " - Total threads: " << num_threads << " - Total worker: " << NUM_THREADS_WORKER << std::endl;
             problem = nextManager->getBranchProblem();
         }
 
 #pragma omp barrier
-        BranchBound *branchBound = new BranchBound(this, call());
-        threadsData[thread_id].thread_id = thread_id;
-        threadsData[thread_id].orchestrator = branchBound;
-        try
+        if (thread_id < NUM_THREADS_WORKER)
         {
-            branchBound->start();
-            if (thread_id == 0)
-                delete nextManager;
-        }
-        catch (const eBranchBoundException e)
-        {
-            std::cout << "Branch Exc: " << e << std::endl;
-        }
-        catch (const MPIBranchBoundTerminationException &es)
-        {
-            if (thread_id == 0) {
-                std::cout << "Final solution is " << es.finalSolution << std::endl;
-                delete nextManager;
+            BranchBound *branchBound = new BranchBound(this, call());
+            threadsData[thread_id].thread_id = thread_id;
+            threadsData[thread_id].orchestrator = branchBound;
+            omp_init_lock(&threadsData[thread_id].lockBound);
+            omp_init_lock(&threadsData[thread_id].lockList);
+            try
+            {
+                branchBound->start();
+                if (thread_id == 0)
+                    delete nextManager;
             }
-        }
-        catch (const int i) {
-
-        }
-        catch (const std::exception &x) {
-            std::cout << x.what() << std::endl;
+            catch (const eBranchBoundException e)
+            {
+                std::cout << "Branch Exc: " << e << std::endl;
+            }
+            catch (const MPIBranchBoundTerminationException &es)
+            {
+                if (thread_id == 0)
+                {
+                    std::cout << "Final solution is " << es.finalSolution << std::endl;
+                    delete nextManager;
+                }
+            }
+            catch (const int i)
+            {
+            }
+            catch (const std::exception &x)
+            {
+                std::cout << x.what() << std::endl;
+            }
         }
     }
 }
@@ -86,6 +93,20 @@ BranchBoundResultBranch *OpenMPManager::waitForBranch()
     BranchBoundResultBranch *result = nullptr;
     const int thread_id = omp_get_thread_num();
 
+    omp_set_lock(&threadsData[thread_id].lockList);
+    if (threadsData[thread_id].branches.size() > 0)
+    {
+        Branch *branch = (Branch *)threadsData[thread_id].branches.front();
+        threadsData[thread_id].branches.pop_front();
+        result = dataManager.getBranchResultFromBranches({branch});
+    }
+    omp_unset_lock(&threadsData[thread_id].lockList);
+
+    if (result != nullptr)
+    {
+        return result;
+    }
+
 #pragma omp atomic
     numOfThreadWaitingForBranch++;
 
@@ -99,22 +120,15 @@ BranchBoundResultBranch *OpenMPManager::waitForBranch()
             }
             catch (const MPILocalTerminationException &e)
             {
-#pragma omp critical(criticalListBranch)
+                if (numOfThreadWaitingForBranch == NUM_THREADS_WORKER)
                 {
-                    if (listOfBranches.size() > 0) {
-                        Branch *branch = (Branch *)listOfBranches.front();
-                        listOfBranches.pop_front();
-                        result = dataManager.getBranchResultFromBranches({branch});
-                    } else if (numOfThreadWaitingForBranch == NUM_THREADS)
+                    try
                     {
-                        try
-                        {
-                            result = nextManager->waitForBranch();
-                        }
-                        catch (const MPIBranchBoundTerminationException &e)
-                        {
-                            globalTermination = true;
-                        }
+                        result = nextManager->waitForBranch();
+                    }
+                    catch (const MPIBranchBoundTerminationException &e)
+                    {
+                        globalTermination = true;
                     }
                 }
             }
@@ -123,25 +137,29 @@ BranchBoundResultBranch *OpenMPManager::waitForBranch()
         if (result != nullptr || globalTermination)
             break;
 
-#pragma omp critical(criticalListBranch)
+        for (int i = 0; i < NUM_THREADS_WORKER && result == nullptr; i++)
         {
-            if (listOfBranches.size() > 0)
+            if (i != thread_id)
             {
-                Branch *branch = (Branch *)listOfBranches.front();
-                listOfBranches.pop_front();
-                result = dataManager.getBranchResultFromBranches({branch});
+                omp_set_lock(&threadsData[i].lockList);
+                if (threadsData[i].branches.size() > 0)
+                {
+                    Branch *branch = (Branch *)threadsData[i].branches.front();
+                    threadsData[i].branches.pop_front();
+                    result = dataManager.getBranchResultFromBranches({branch});
+                }
+                omp_unset_lock(&threadsData[i].lockList);
             }
         }
-
     }
 
 #pragma omp atomic
     numOfThreadWaitingForBranch--;
 
     if (globalTermination)
-        {
-            throw MPIBranchBoundTerminationException(22);
-        }
+    {
+        throw MPIBranchBoundTerminationException(22);
+    }
 
     return result;
 }
@@ -151,7 +169,7 @@ void OpenMPManager::prologue(std::function<void(BranchBoundResult *)> callback)
     const int thread_id = omp_get_thread_num();
     if (thread_id == 0)
         nextManager->prologue(callback);
-    
+
     omp_set_lock(&threadsData[thread_id].lockBound);
     threadsData[thread_id].orchestrator->setBound(threadsData[thread_id].bound);
     omp_unset_lock(&threadsData[thread_id].lockBound);
@@ -173,19 +191,19 @@ void OpenMPManager::epilogue(std::function<const Branch *()> callback)
 
     if (newBranches.size() > 0)
     {
-#pragma omp critical(criticalListBranch)
-        {
-            listOfBranches.insert(listOfBranches.end(), newBranches.begin(), newBranches.end());
-            if (thread_id == 0)
-                nextManager->epilogue([this] () -> const Branch *
-                                      {
-                    if (listOfBranches.size() > 0) {
-                        const Branch* branch = listOfBranches.front();
-                        listOfBranches.pop_front();
+
+        omp_set_lock(&threadsData[thread_id].lockList);
+        threadsData[thread_id].branches.insert(threadsData[thread_id].branches.end(), newBranches.begin(), newBranches.end());
+        if (thread_id == 0)
+            nextManager->epilogue([this, thread_id]() -> const Branch *
+                                  {
+                    if (threadsData[thread_id].branches.size() > 0) {
+                        const Branch* branch = threadsData[thread_id].branches.front();
+                        threadsData[thread_id].branches.pop_front();
                         return branch;
                     }
                     return nullptr; });
-        }
+        omp_unset_lock(&threadsData[thread_id].lockList);
     }
 }
 
@@ -193,9 +211,10 @@ void OpenMPManager::sendBound(BranchBoundResultSolution *bound)
 {
     const int myId = omp_get_thread_num();
     const double solution = bound->getSolutionResult();
-    for (int i = 0; i < NUM_THREADS; i++)
+    for (int i = 0; i < NUM_THREADS_WORKER; i++)
     {
-        if (i != myId) {
+        if (i != myId)
+        {
             omp_set_lock(&threadsData[i].lockBound);
             if (solution > threadsData[i].bound)
                 threadsData[i].bound = solution;
