@@ -21,6 +21,7 @@ struct ThreadData
     omp_lock_t lockBound;
     double bound = -1;
     std::list<const Branch*> branches;
+    std::list<const Branch*> cachedBranch;
     omp_lock_t lockList;
 };
 
