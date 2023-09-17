@@ -244,6 +244,8 @@ void OpenMPManager::sendBound(BranchBoundResultSolution *bound)
 {
     const int myId = omp_get_thread_num();
     const double solution = bound->getSolutionResult();
+    if (nextManager != nullptr)
+        nextManager->sendBound(bound);
 #pragma omp task firstprivate(myId, solution)
     {
         for (int i = 0; i < NUM_THREADS_WORKER; i++)
