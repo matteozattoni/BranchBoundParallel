@@ -226,7 +226,7 @@ void OpenMPManager::epilogue(std::function<const Branch *()> callback)
 
     if (newBranches.size() > 0)
     {
-#pragma omp task
+#pragma omp task untied
         {
             while (!omp_test_lock(&threadsData[thread_id].lockList))
             {
@@ -253,7 +253,7 @@ void OpenMPManager::sendBound(BranchBoundResultSolution *bound)
     const double solution = bound->getSolutionResult();
     if (myId == 0 && nextManager != nullptr)
         nextManager->sendBound(bound);
-#pragma omp task firstprivate(myId, solution)
+#pragma omp task firstprivate(myId, solution) untied
     {
         for (int i = 0; i < NUM_THREADS_WORKER; i++)
         {
