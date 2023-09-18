@@ -7,13 +7,13 @@
 #SBATCH --partition=broadwell
 #
 # Number of tasks needed for use case:
-#SBATCH -n 360
+## SBATCH -n 360
 #
 # Scedule for later
-#SBATCH --begin=now+2hour
+## SBATCH --begin=now+2hour
 #
 # Number of nodes and how many task per each node
-## SBATCH -N4 --ntasks-per-node=32
+#SBATCH -N1 --ntasks-per-node=1 --cpus-per-task=18
 #
 # Wall clock limit hours:minutes:seconds
 ## SBATCH --time=00:30:00

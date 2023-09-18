@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <optional>
 #include "openmpmanager.h"
@@ -8,6 +7,7 @@
 
 OpenMPManager::OpenMPManager(MPIDataManager &mpiDataManager) : dataManager(mpiDataManager)
 {
+    nextManager = nullptr;
 }
 
 OpenMPManager::~OpenMPManager()
@@ -25,7 +25,7 @@ void OpenMPManager::start(std::function<BranchBoundAlgorithm *()> call)
     {
         const int thread_id = omp_get_thread_num();
         int num_threads = omp_get_num_threads();
-#pragma omp masked
+#pragma omp master
         {
             nextManager = new MPIBranchBoundManager(dataManager);
             std::cout << "Comm rank: " << nextManager->getIdentity() << " | " << num_threads << " threads (worker: " << NUM_THREADS_WORKER << " - helper: " << NUM_THREADS_HELPER << ")" << std::endl;
@@ -51,7 +51,7 @@ void OpenMPManager::start(std::function<BranchBoundAlgorithm *()> call)
             }
             catch (const MPIBranchBoundTerminationException &es)
             {
-                if (thread_id == 0)
+                if (thread_id == 0 && nextManager != nullptr)
                 {
                     if (nextManager->getIdentity() == 0)
                         std::cout << "Final solution is " << es.finalSolution << std::endl;
@@ -75,7 +75,8 @@ BranchBoundProblem *OpenMPManager::getBranchProblem()
 
 Branch *OpenMPManager::getRootBranch()
 {
-    if (nextManager != nullptr)
+    const int thread_id = omp_get_thread_num();
+    if (thread_id == 0 && nextManager != nullptr)
         return nextManager->getRootBranch();
     else
         return nullptr;
@@ -83,7 +84,8 @@ Branch *OpenMPManager::getRootBranch()
 
 BranchBoundResultBranch *OpenMPManager::getBranch()
 {
-    if (nextManager != nullptr)
+    const int thread_id = omp_get_thread_num();
+    if (thread_id == 0 && nextManager != nullptr)
         return nextManager->getBranch();
     else
         return nullptr;
@@ -121,7 +123,7 @@ BranchBoundResultBranch *OpenMPManager::waitForBranch()
 
     while (result == nullptr && !globalTermination)
     {
-        if (thread_id == 0)
+        if (thread_id == 0 && nextManager != nullptr)
         {
             try
             {
@@ -182,13 +184,16 @@ BranchBoundResultBranch *OpenMPManager::waitForBranch()
         throw MPIBranchBoundTerminationException(22);
     }
 
+    if (result == nullptr)
+        throw MPIGeneralException("result is null");
+
     return result;
 }
 
 void OpenMPManager::prologue(std::function<void(BranchBoundResult *)> callback)
 {
     const int thread_id = omp_get_thread_num();
-    if (thread_id == 0)
+    if (thread_id == 0 && nextManager != nullptr)
         nextManager->prologue(callback);
 
     omp_set_lock(&threadsData[thread_id].lockBound);
@@ -199,7 +204,7 @@ void OpenMPManager::prologue(std::function<void(BranchBoundResult *)> callback)
 void OpenMPManager::epilogue(std::function<const Branch *()> callback)
 {
     const int thread_id = omp_get_thread_num();
-    if (thread_id == 0)
+    if (thread_id == 0 && nextManager != nullptr)
         nextManager->epilogue(callback);
 
     const Branch *branch = callback();
@@ -220,13 +225,14 @@ void OpenMPManager::epilogue(std::function<const Branch *()> callback)
 
     if (newBranches.size() > 0)
     {
-#pragma omp task private(newBranches) firstprivate(thread_id)
+#pragma omp task firstprivate(newBranches, thread_id)
         {
-            while(!omp_test_lock(&threadsData[thread_id].lockList)) {
-                #pragma omp taskyield
+            while (!omp_test_lock(&threadsData[thread_id].lockList))
+            {
+#pragma omp taskyield
             }
             threadsData[thread_id].branches.insert(threadsData[thread_id].branches.end(), newBranches.begin(), newBranches.end());
-            if (thread_id == 0)
+            if (thread_id == 0 && nextManager != nullptr)
                 nextManager->epilogue([this, thread_id]() -> const Branch *
                                       {
                     if (threadsData[thread_id].branches.size() > 0) {
@@ -244,27 +250,27 @@ void OpenMPManager::sendBound(BranchBoundResultSolution *bound)
 {
     const int myId = omp_get_thread_num();
     const double solution = bound->getSolutionResult();
-    if (nextManager != nullptr)
+    if (myId == 0 && nextManager != nullptr)
         nextManager->sendBound(bound);
 #pragma omp task firstprivate(myId, solution)
     {
         for (int i = 0; i < NUM_THREADS_WORKER; i++)
         {
-            if (i != myId)
-            {
-                while(!omp_test_lock(&threadsData[i].lockBound)) {
-                    #pragma omp taskyield
+                while (!omp_test_lock(&threadsData[i].lockBound))
+                {
+#pragma omp taskyield
                 }
-                if (solution > threadsData[i].bound)
+                if (solution > threadsData[i].bound) {
                     threadsData[i].bound = solution;
+                }
+                    
                 omp_unset_lock(&threadsData[i].lockBound);
-            }
+            
         }
     }
 }
 
-int OpenMPManager::getIdentity() {
-    if (nextManager != nullptr)
-        return nextManager->getIdentity();
-    return -1;
+int OpenMPManager::getIdentity()
+{
+    return nextManager->getIdentity();
 }
