@@ -29,8 +29,10 @@ void BranchBound::start()
     if (firstExecution)
     {
         Branch *rootBranch = parallelManager->getRootBranch();
-        if (rootBranch != nullptr)
+        if (rootBranch != nullptr) {
             algorithm->setBranch(rootBranch);
+            delete rootBranch;
+        }
         firstExecution = false;
     }
 
@@ -59,8 +61,10 @@ void BranchBound::start()
                     // std::cout << rank << " end wait" << std::endl;
                     for (Branch *b : resultBranch->getListBranch())
                     {
-                        if (!algorithm->hasCurrentBranch())
+                        if (!algorithm->hasCurrentBranch()) {
                             algorithm->setBranch(b);
+                            delete b;
+                        }
                         else
                             addBranchToQueue(b);
                     }

@@ -208,6 +208,7 @@ void OpenMPManager::epilogue(std::function<const Branch *()> callback)
         nextManager->epilogue(callback);
 
     const Branch *branch = callback();
+    
     while (branch != nullptr)
     {
         threadsData[thread_id].cachedBranch.push_front(branch);
@@ -216,16 +217,16 @@ void OpenMPManager::epilogue(std::function<const Branch *()> callback)
 
     std::list<const Branch *> newBranches;
 
-    if (threadsData[thread_id].cachedBranch.size() > 3)
+    if (threadsData[thread_id].cachedBranch.size() > NUM_TO_CACHE)
     {
         auto it = threadsData[thread_id].cachedBranch.begin();
         std::advance(it, 2);
-        newBranches.splice(newBranches.end(), threadsData[thread_id].cachedBranch, it);
+        newBranches.splice(newBranches.end(), threadsData[thread_id].cachedBranch, it, threadsData[thread_id].cachedBranch.end());
     }
 
     if (newBranches.size() > 0)
     {
-#pragma omp task firstprivate(newBranches, thread_id)
+#pragma omp task
         {
             while (!omp_test_lock(&threadsData[thread_id].lockList))
             {
