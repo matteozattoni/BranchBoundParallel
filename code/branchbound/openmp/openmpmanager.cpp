@@ -226,7 +226,7 @@ void OpenMPManager::epilogue(std::function<const Branch *()> callback)
 
     if (newBranches.size() > 0)
     {
-#pragma omp task untied
+#pragma omp task untied if(thread_id != 0)
         {
             while (!omp_test_lock(&threadsData[thread_id].lockList))
             {
